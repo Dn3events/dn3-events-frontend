@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Upload, Check } from 'lucide-react'
 import { useStore } from '../store/useStore'
+import { events as eventsAPI } from '../api/events'
 
 const steps = ['Basic Details', 'Location', 'Dates', 'Review']
 
 export default function CreateEvent() {
   const navigate = useNavigate()
-  const { addEvent, showToast } = useStore()
+  const { showToast } = useStore()
+  const [submitting, setSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [logo, setLogo] = useState(null)
   const [formData, setFormData] = useState({
@@ -75,36 +77,39 @@ export default function CreateEvent() {
     }
   }
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!formData.name.trim()) return
 
-    const startDateTime = new Date(`${formData.startDate}T${formData.startTime}:00Z`).toISOString()
-    const endDateTime = new Date(`${formData.endDate}T${formData.endTime}:00Z`).toISOString()
-    const salesOpenDateTime = new Date(`${formData.salesOpenDate}T${formData.salesOpenTime}:00Z`).toISOString()
-    const salesCloseDateTime = new Date(`${formData.salesCloseDate}T${formData.salesCloseTime}:00Z`).toISOString()
+    const startDateTime = new Date(`${formData.startDate}T${formData.startTime}:00`).toISOString()
+    const endDateTime = new Date(`${formData.endDate}T${formData.endTime}:00`).toISOString()
+    const salesOpenDateTime = new Date(`${formData.salesOpenDate}T${formData.salesOpenTime}:00`).toISOString()
+    const salesCloseDateTime = new Date(`${formData.salesCloseDate}T${formData.salesCloseTime}:00`).toISOString()
 
     const newEvent = {
       name: formData.name,
-      description: `<p>${formData.description}</p>`,
-      logo,
+      description: formData.description,
       websiteUrl: formData.websiteUrl,
-      address: {
-        line1: formData.line1,
-        line2: formData.line2,
-        city: formData.city,
-        county: formData.county,
-        postcode: formData.postcode,
-      },
+      addressLine1: formData.line1,
+      addressLine2: formData.line2,
+      city: formData.city,
+      county: formData.county,
+      postcode: formData.postcode,
       startDate: startDateTime,
       endDate: endDateTime,
       salesOpenDate: salesOpenDateTime,
       salesCloseDate: salesCloseDateTime,
-      status: 'live',
     }
 
-    addEvent(newEvent)
-    showToast('Event created successfully')
-    navigate('/')
+    try {
+      setSubmitting(true)
+      await eventsAPI.create(newEvent)
+      showToast('Event created successfully')
+      navigate('/')
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Failed to create event', 'error')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -422,9 +427,10 @@ export default function CreateEvent() {
           ) : (
             <button
               onClick={handleCreate}
-              className="flex-1 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              disabled={submitting}
+              className="flex-1 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
             >
-              Create Event
+              {submitting ? 'Creating...' : 'Create Event'}
             </button>
           )}
         </div>

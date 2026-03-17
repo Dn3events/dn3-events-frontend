@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import { ChevronLeft, MoreVertical } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ChevronLeft, MoreVertical, Loader } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import StatusBadge from '../components/StatusBadge'
 import DetailsTab from '../tabs/DetailsTab'
@@ -11,17 +11,42 @@ import ReportsTab from '../tabs/ReportsTab'
 import BuyersTab from '../tabs/BuyersTab'
 import SettingsTab from '../tabs/SettingsTab'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { events as eventsAPI } from '../api/events'
 
 const TABS = ['Details', 'Tickets', 'Checkout', 'Sales', 'Buyers', 'Reports', 'Settings']
 
 export default function EventDetail() {
   const { eventId } = useParams()
   const navigate = useNavigate()
-  const { events, updateEvent, deleteEvent, showToast } = useStore()
+  const { showToast } = useStore()
+  const [event, setEvent] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [currentTab, setCurrentTab] = useState(0)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
 
-  const event = events.find((e) => e.id === eventId)
+  useEffect(() => {
+    const loadEvent = async () => {
+      try {
+        setLoading(true)
+        const res = await eventsAPI.get(eventId)
+        setEvent(res.data.data)
+      } catch (err) {
+        console.error('Failed to load event:', err)
+        setEvent(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadEvent()
+  }, [eventId])
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <Loader className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
+      </div>
+    )
+  }
 
   if (!event) {
     return (
@@ -31,15 +56,24 @@ export default function EventDetail() {
     )
   }
 
-  const handleStatusChange = (newStatus) => {
-    updateEvent(event.id, { status: newStatus })
-    showToast(`Event ${newStatus === 'live' ? 'published' : 'paused'}`)
+  const handleStatusChange = async (newStatus) => {
+    try {
+      await eventsAPI.update(event.id, { status: newStatus })
+      setEvent({ ...event, status: newStatus })
+      showToast(`Event ${newStatus === 'live' ? 'published' : newStatus}`)
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to update status', 'error')
+    }
   }
 
-  const handleDelete = () => {
-    deleteEvent(event.id)
-    showToast('Event deleted successfully')
-    navigate('/')
+  const handleDelete = async () => {
+    try {
+      await eventsAPI.delete(event.id)
+      showToast('Event deleted successfully')
+      navigate('/')
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to delete event', 'error')
+    }
   }
 
   return (
