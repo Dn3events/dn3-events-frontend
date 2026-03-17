@@ -1,7 +1,7 @@
 import { useSearchParams, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Loader, AlertCircle, CheckCircle } from 'lucide-react'
-import { orders } from '../api/orders'
+import { payments } from '../api/payments'
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams()
@@ -19,8 +19,10 @@ export default function PaymentSuccess() {
   const loadOrder = async () => {
     try {
       setLoading(true)
-      const response = await orders.get(sessionId)
-      setOrder(response.data.data)
+      const response = await payments.getSuccess(sessionId)
+      const orderData = response.data.data.order
+      // Normalise: page renders order.tickets, backend returns order.items
+      setOrder({ ...orderData, tickets: orderData.items || [] })
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load order details')
     } finally {

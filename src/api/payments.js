@@ -2,11 +2,8 @@ import client from './client'
 
 export const payments = {
   createCheckoutSession: (data) =>
-    client.post('/payments/stripe/session', data),
+    client.post('/payments/create-session', data),
 
-  getSessionStatus: (sessionId) =>
-    client.get(`/payments/stripe/session/${sessionId}`),
-
-  createPaymentIntent: (data) =>
-    client.post('/payments/intent', data),
+  getSuccess: (sessionId) =>
+    client.get(`/payments/success?session_id=${sessionId}`),
 }
