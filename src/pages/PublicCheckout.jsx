@@ -65,7 +65,7 @@ export default function PublicCheckout() {
     if (checkout?.tickets) {
       checkout.tickets.forEach((ticket) => {
         const qty = quantities[ticket.id] || 0
-        subtotal += ticket.price * qty
+        subtotal += parseFloat(ticket.price) * qty
       })
     }
 
@@ -175,7 +175,7 @@ export default function PublicCheckout() {
                     <div key={ticket.id} className="flex items-center justify-between p-3 border border-gray-200 rounded">
                       <div>
                         <h3 className="font-semibold text-gray-900">{ticket.name}</h3>
-                        <p className="text-sm text-gray-600">£{ticket.price.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">£{parseFloat(ticket.price).toFixed(2)}</p>
                       </div>
                       <input
                         type="number"
