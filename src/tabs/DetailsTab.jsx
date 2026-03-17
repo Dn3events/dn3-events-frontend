@@ -2,15 +2,17 @@ import { useState } from 'react'
 import { useStore } from '../store/useStore'
 import { Upload } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
+import { events as eventsAPI } from '../api/events'
 
-export default function DetailsTab({ event }) {
-  const { updateEvent, showToast } = useStore()
+export default function DetailsTab({ event, onEventUpdate }) {
+  const { showToast } = useStore()
   const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
-    name: event.name,
-    description: event.description.replace(/<[^>]*>/g, ''),
-    websiteUrl: event.websiteUrl,
-    logo: event.logo,
+    name: event.name || '',
+    description: (event.description || '').replace(/<[^>]*>/g, ''),
+    websiteUrl: event.websiteUrl || '',
+    logo: event.logo || null,
   })
 
   const handleChange = (e) => {
@@ -22,22 +24,31 @@ export default function DetailsTab({ event }) {
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = (event) => {
-        setFormData((prev) => ({ ...prev, logo: event.target.result }))
+      reader.onload = (ev) => {
+        setFormData((prev) => ({ ...prev, logo: ev.target.result }))
       }
       reader.readAsDataURL(file)
     }
   }
 
-  const handleSave = () => {
-    updateEvent(event.id, {
-      name: formData.name,
-      description: `<p>${formData.description}</p>`,
-      websiteUrl: formData.websiteUrl,
-      logo: formData.logo,
-    })
-    setIsEditing(false)
-    showToast('Event details updated')
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      const updates = {
+        name: formData.name,
+        description: `<p>${formData.description}</p>`,
+        websiteUrl: formData.websiteUrl,
+        logo: formData.logo,
+      }
+      await eventsAPI.update(event.id, updates)
+      if (onEventUpdate) onEventUpdate(updates)
+      setIsEditing(false)
+      showToast('Event details updated')
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to save changes', 'error')
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (!isEditing) {
@@ -77,13 +88,13 @@ export default function DetailsTab({ event }) {
             <div className="mb-8">
               <p className="text-sm text-gray-600 mb-2">Location</p>
               <p className="text-gray-900">
-                {event.address.line1}
-                {event.address.line2 && <>, {event.address.line2}</>}
+                {event.addressLine1}
+                {event.addressLine2 && <>, {event.addressLine2}</>}
               </p>
               <p className="text-gray-900">
-                {event.address.city}, {event.address.county}
+                {[event.city, event.county].filter(Boolean).join(', ')}
               </p>
-              <p className="text-gray-900 font-semibold">{event.address.postcode}</p>
+              <p className="text-gray-900 font-semibold">{event.postcode}</p>
             </div>
 
             <div className="mb-8">
@@ -178,12 +189,14 @@ export default function DetailsTab({ event }) {
         <div className="flex gap-4 pt-4">
           <button
             onClick={handleSave}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            disabled={saving}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
           >
-            Save Changes
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
           <button
             onClick={() => setIsEditing(false)}
+            disabled={saving}
             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
           >
             Cancel

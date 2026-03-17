@@ -82,7 +82,7 @@ export default function Dashboard() {
 
   const eventsByYear = {}
   events.forEach((event) => {
-    const year = event.year
+    const year = event.year || new Date(event.startDate).getFullYear()
     if (!eventsByYear[year]) eventsByYear[year] = []
     eventsByYear[year].push(event)
   })

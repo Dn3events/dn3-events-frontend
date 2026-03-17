@@ -166,7 +166,7 @@ export default function EventDetail() {
         </div>
 
         <div className="p-8">
-          {currentTab === 0 && <DetailsTab event={event} />}
+          {currentTab === 0 && <DetailsTab event={event} onEventUpdate={(updates) => setEvent({ ...event, ...updates })} />}
           {currentTab === 1 && <TicketsTab eventId={event.id} />}
           {currentTab === 2 && <CheckoutTab eventId={event.id} />}
           {currentTab === 3 && <SalesTab eventId={event.id} />}
