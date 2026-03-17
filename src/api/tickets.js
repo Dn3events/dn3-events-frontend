@@ -4,18 +4,18 @@ export const tickets = {
   listByEvent: (eventId) =>
     client.get(`/events/${eventId}/tickets`),
 
-  get: (ticketId) =>
-    client.get(`/tickets/${ticketId}`),
+  get: (eventId, ticketId) =>
+    client.get(`/events/${eventId}/tickets/${ticketId}`),
 
   create: (eventId, data) =>
     client.post(`/events/${eventId}/tickets`, data),
 
-  update: (ticketId, data) =>
-    client.patch(`/tickets/${ticketId}`, data),
+  update: (eventId, ticketId, data) =>
+    client.patch(`/events/${eventId}/tickets/${ticketId}`, data),
 
-  delete: (ticketId) =>
-    client.delete(`/tickets/${ticketId}`),
+  delete: (eventId, ticketId) =>
+    client.delete(`/events/${eventId}/tickets/${ticketId}`),
 
-  updateStatus: (ticketId, status) =>
-    client.patch(`/tickets/${ticketId}`, { status }),
+  updateStatus: (eventId, ticketId, status) =>
+    client.patch(`/events/${eventId}/tickets/${ticketId}`, { status }),
 }

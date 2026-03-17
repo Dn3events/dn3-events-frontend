@@ -1,11 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
-import { Plus, GripVertical, Edit3, Trash2 } from 'lucide-react'
+import { Plus, GripVertical, Edit3, Trash2, Loader } from 'lucide-react'
 import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { tickets as ticketsAPI } from '../api/tickets'
 
 export default function TicketsTab({ eventId }) {
-  const { tickets, addTicket, updateTicket, deleteTicket, showToast } = useStore()
+  const { showToast } = useStore()
+  const [eventTickets, setEventTickets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [editingId, setEditingId] = useState(null)
@@ -18,16 +22,32 @@ export default function TicketsTab({ eventId }) {
     groupHeading: '',
   })
 
-  const eventTickets = tickets.filter((t) => t.eventId === eventId)
-  const totalCapacity = eventTickets.reduce((sum, t) => sum + (t.quantity || Infinity), 0)
-  const totalSold = eventTickets.reduce((sum, t) => sum + t.sold, 0)
+  useEffect(() => {
+    loadTickets()
+  }, [eventId])
+
+  const loadTickets = async () => {
+    try {
+      setLoading(true)
+      const res = await ticketsAPI.listByEvent(eventId)
+      setEventTickets(res.data.data || [])
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to load tickets', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const totalCapacity = eventTickets.reduce((sum, t) => sum + (t.quantity || 0), 0)
+  const totalSold = eventTickets.reduce((sum, t) => sum + (t.sold || 0), 0)
+  const hasUnlimited = eventTickets.some((t) => !t.quantity)
 
   const handleOpenModal = (ticket = null) => {
     if (ticket) {
       setEditingId(ticket.id)
       setFormData({
         name: ticket.name,
-        description: ticket.description,
+        description: ticket.description || '',
         price: ticket.price.toString(),
         earlyPrice: ticket.earlyPrice ? ticket.earlyPrice.toString() : '',
         quantity: ticket.quantity ? ticket.quantity.toString() : '',
@@ -52,14 +72,13 @@ export default function TicketsTab({ eventId }) {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name.trim() || !formData.price) {
       showToast('Please fill in required fields', 'error')
       return
     }
 
     const ticketData = {
-      eventId,
       name: formData.name,
       description: formData.description,
       price: parseFloat(formData.price),
@@ -71,26 +90,56 @@ export default function TicketsTab({ eventId }) {
       sortOrder: eventTickets.length + 1,
     }
 
-    if (editingId) {
-      updateTicket(editingId, ticketData)
-      showToast('Ticket updated')
-    } else {
-      addTicket(ticketData)
-      showToast('Ticket added')
+    try {
+      setSaving(true)
+      if (editingId) {
+        const res = await ticketsAPI.update(eventId, editingId, ticketData)
+        setEventTickets((prev) =>
+          prev.map((t) => (t.id === editingId ? res.data.data : t))
+        )
+        showToast('Ticket updated')
+      } else {
+        const res = await ticketsAPI.create(eventId, ticketData)
+        setEventTickets((prev) => [...prev, res.data.data])
+        showToast('Ticket added')
+      }
+      setIsModalOpen(false)
+      setEditingId(null)
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to save ticket', 'error')
+    } finally {
+      setSaving(false)
     }
-
-    setIsModalOpen(false)
-    setEditingId(null)
   }
 
-  const handleDelete = (ticketId) => {
-    deleteTicket(ticketId)
-    setDeleteConfirm(null)
-    showToast('Ticket deleted')
+  const handleDelete = async (ticketId) => {
+    try {
+      await ticketsAPI.delete(eventId, ticketId)
+      setEventTickets((prev) => prev.filter((t) => t.id !== ticketId))
+      setDeleteConfirm(null)
+      showToast('Ticket deleted')
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to delete ticket', 'error')
+    }
   }
 
-  const handleToggleVisibility = (ticket) => {
-    updateTicket(ticket.id, { visible: !ticket.visible })
+  const handleToggleVisibility = async (ticket) => {
+    try {
+      const res = await ticketsAPI.update(eventId, ticket.id, { visible: !ticket.visible })
+      setEventTickets((prev) =>
+        prev.map((t) => (t.id === ticket.id ? res.data.data : t))
+      )
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to update ticket', 'error')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    )
   }
 
   return (
@@ -99,7 +148,7 @@ export default function TicketsTab({ eventId }) {
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Tickets</h3>
           <p className="text-sm text-gray-600 mt-1">
-            Total: {totalSold} sold {totalCapacity !== Infinity ? `/ ${totalCapacity} available` : '(unlimited)'}
+            Total: {totalSold} sold {hasUnlimited ? '(unlimited capacity)' : `/ ${totalCapacity} available`}
           </p>
         </div>
         <button
@@ -114,6 +163,7 @@ export default function TicketsTab({ eventId }) {
       {eventTickets.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <p className="text-gray-600">No tickets yet</p>
+          <p className="text-gray-400 text-sm mt-2">Add your first ticket type to get started</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -131,7 +181,7 @@ export default function TicketsTab({ eventId }) {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {eventTickets
-                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
                 .map((ticket) => (
                   <tr key={ticket.id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4">
@@ -142,13 +192,13 @@ export default function TicketsTab({ eventId }) {
                       <p className="text-xs text-gray-600">{ticket.description}</p>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      £{ticket.price.toFixed(2)}
+                      £{parseFloat(ticket.price).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {ticket.earlyPrice ? `£${ticket.earlyPrice.toFixed(2)}` : '-'}
+                      {ticket.earlyPrice ? `£${parseFloat(ticket.earlyPrice).toFixed(2)}` : '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {ticket.quantity ? ticket.quantity : '∞'} / {ticket.sold}
+                      {ticket.quantity ? ticket.quantity : '∞'} / {ticket.sold || 0}
                     </td>
                     <td className="px-6 py-4">
                       <button
@@ -273,12 +323,14 @@ export default function TicketsTab({ eventId }) {
           <div className="flex gap-3 pt-4">
             <button
               onClick={handleSave}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              disabled={saving}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
             >
-              {editingId ? 'Update Ticket' : 'Add Ticket'}
+              {saving ? 'Saving...' : editingId ? 'Update Ticket' : 'Add Ticket'}
             </button>
             <button
               onClick={() => setIsModalOpen(false)}
+              disabled={saving}
               className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
             >
               Cancel

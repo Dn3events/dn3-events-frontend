@@ -4,18 +4,18 @@ export const checkouts = {
   listByEvent: (eventId) =>
     client.get(`/events/${eventId}/checkouts`),
 
-  get: (checkoutId) =>
-    client.get(`/checkouts/${checkoutId}`),
-
   getBySlug: (slug) =>
-    client.get(`/checkouts/slug/${slug}`),
+    client.get(`/public/checkouts/${slug}`),
 
   create: (eventId, data) =>
     client.post(`/events/${eventId}/checkouts`, data),
 
-  update: (checkoutId, data) =>
-    client.patch(`/checkouts/${checkoutId}`, data),
+  update: (eventId, checkoutId, data) =>
+    client.put(`/events/${eventId}/checkouts/${checkoutId}`, data),
 
-  delete: (checkoutId) =>
-    client.delete(`/checkouts/${checkoutId}`),
+  toggle: (eventId, checkoutId) =>
+    client.patch(`/events/${eventId}/checkouts/${checkoutId}/toggle`),
+
+  delete: (eventId, checkoutId) =>
+    client.delete(`/events/${eventId}/checkouts/${checkoutId}`),
 }
