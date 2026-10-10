@@ -148,7 +148,29 @@ export default function CheckInTab({ eventId }) {
 
       {result && (
         <div className={`border-2 rounded-lg p-6 ${RESULT_STYLE[result.result] || RESULT_STYLE.invalid}`}>
-          <p className="text-2xl font-bold">{RESULT_TITLE[result.result] || 'NOT RECOGNISED'}</p>
+          <p className="text-2xl font-bold">
+            {result.result === 'duplicate' && result.data?.group?.total > 0 && result.data.group.remaining === 0 && result.data.group.total > 1
+              ? 'ALL TICKETS USED'
+              : result.result === 'admitted' && result.data?.group?.total > 1
+                ? 'ADMIT ONE'
+                : RESULT_TITLE[result.result] || 'NOT RECOGNISED'}
+          </p>
+          {result.data?.group?.total > 1 && (
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div className="bg-white/70 rounded-lg py-2">
+                <p className="text-3xl font-bold">{result.data.group.total}</p>
+                <p className="text-xs uppercase tracking-wide">On this order</p>
+              </div>
+              <div className="bg-white/70 rounded-lg py-2">
+                <p className="text-3xl font-bold">{result.data.group.used}</p>
+                <p className="text-xs uppercase tracking-wide">Used</p>
+              </div>
+              <div className="bg-white/70 rounded-lg py-2">
+                <p className="text-3xl font-bold">{result.data.group.remaining}</p>
+                <p className="text-xs uppercase tracking-wide">Left</p>
+              </div>
+            </div>
+          )}
           {result.data && (
             <p className="mt-1 text-lg">
               {result.data.holder} - {result.data.ticketName}
@@ -178,6 +200,7 @@ export default function CheckInTab({ eventId }) {
                 <p className="text-sm text-gray-600">
                   {t.ticketName}
                   {t.kind === 'guest' ? ' (guest)' : ''}
+                  {t.group?.total > 1 && ` - order of ${t.group.total}: ${t.group.used} in, ${t.group.remaining} left`}
                 </p>
               </div>
               {t.status === 'revoked' ? (
