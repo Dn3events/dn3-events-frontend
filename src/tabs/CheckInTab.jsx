@@ -113,27 +113,13 @@ export default function CheckInTab({ eventId }) {
         </div>
       )}
 
-      <form onSubmit={submitCode} className="flex gap-3">
-        <input
-          ref={inputRef}
-          autoFocus
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Scan or type the ticket code, then press Enter"
-          className="flex-1 px-4 py-3 border-2 border-blue-300 rounded-lg text-lg font-mono focus:ring-2 focus:ring-blue-500"
-        />
-        <button type="submit" className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
-          Check in
-        </button>
-      </form>
-
       <div>
         <button
           type="button"
           onClick={() => setCameraOn((on) => !on)}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
+          className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700"
         >
-          <Camera className="w-4 h-4" />
+          <Camera className="w-6 h-6" />
           {cameraOn ? 'Stop camera' : 'Scan with camera'}
         </button>
         {cameraOn && (
@@ -142,6 +128,19 @@ export default function CheckInTab({ eventId }) {
           </div>
         )}
       </div>
+
+      <form onSubmit={submitCode} className="flex flex-col gap-3 sm:flex-row">
+        <input
+          ref={inputRef}
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="Or type the ticket code"
+          className="min-w-0 flex-1 px-4 py-3 border-2 border-blue-300 rounded-lg text-lg font-mono focus:ring-2 focus:ring-blue-500"
+        />
+        <button type="submit" className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
+          Check in
+        </button>
+      </form>
 
       {result && (
         <div className={`border-2 rounded-lg p-6 ${RESULT_STYLE[result.result] || RESULT_STYLE.invalid}`}>
