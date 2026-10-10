@@ -161,7 +161,7 @@ export default function PublicCheckout() {
   const canBuy = checkout.salesOpen !== false
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:py-12">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -180,16 +180,16 @@ export default function PublicCheckout() {
         )}
 
         {/* Main Form */}
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Form Section */}
-          <div className="md:col-span-2">
+          <div className="min-w-0 md:col-span-2">
             <form onSubmit={handlePayment} className="space-y-6">
               {/* Tickets */}
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Select Tickets</h2>
                 <div className="space-y-4">
                   {checkout.tickets?.map((ticket) => (
-                    <div key={ticket.id} className="flex items-center justify-between p-3 border border-gray-200 rounded">
+                    <div key={ticket.id} className="flex items-center justify-between gap-3 p-3 border border-gray-200 rounded">
                       <div>
                         <h3 className="font-semibold text-gray-900">{ticket.name}</h3>
                         <p className="text-sm text-gray-600">{ticket.price === 0 ? 'Free' : money(ticket.price)}
@@ -218,7 +218,7 @@ export default function PublicCheckout() {
               </div>
 
               {/* Buyer Details */}
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Details</h2>
                 <div className="space-y-4">
                   <input
@@ -249,7 +249,7 @@ export default function PublicCheckout() {
               </div>
 
               {/* Discount Code */}
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Discount Code</h2>
                 <div className="flex gap-2">
                   <input
@@ -257,7 +257,7 @@ export default function PublicCheckout() {
                     placeholder="Enter code"
                     value={discountCode}
                     onChange={(e) => setDiscountCode(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="min-w-0 flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   />
                   <button
                     type="button"
