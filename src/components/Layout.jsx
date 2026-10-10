@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react'
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
-import { Calendar, Home, LogOut } from 'lucide-react'
+import { Calendar, Home, LogOut, Menu, X } from 'lucide-react'
 import { useAuthStore } from '../store/useAuthStore'
 
 export default function Layout() {
@@ -7,12 +8,16 @@ export default function Layout() {
   const navigate = useNavigate()
   const { logout, user } = useAuthStore()
 
+  const [menuOpen, setMenuOpen] = useState(false)
+  useEffect(() => { setMenuOpen(false) }, [location.pathname])
+
   const isEventPage = location.pathname.includes('/event/')
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
+      {menuOpen && <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setMenuOpen(false)} />}
       {/* Sidebar */}
-      <div className="w-64 bg-sidebar text-white flex flex-col shadow-lg">
+      <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar text-white flex flex-col shadow-lg transform transition-transform md:static md:translate-x-0 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="p-6 border-b border-gray-700">
           <div className="flex items-center gap-2">
@@ -59,11 +64,14 @@ export default function Layout() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="bg-white border-b border-gray-200 px-8 py-4 shadow-sm">
+        <div className="bg-white border-b border-gray-200 px-4 py-3 md:px-8 md:py-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">
+            <button className="md:hidden mr-3 p-2 -ml-2 text-gray-700" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
+              {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+            <h2 className="flex-1 text-lg font-semibold text-gray-800">
               {!isEventPage ? 'Dashboard' : 'Event Management'}
             </h2>
             <div className="flex items-center gap-4">
@@ -76,7 +84,7 @@ export default function Layout() {
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto">
-          <div className="p-8">
+          <div className="p-3 sm:p-6 md:p-8">
             <Outlet />
           </div>
         </div>

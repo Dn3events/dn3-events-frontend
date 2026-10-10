@@ -89,19 +89,19 @@ export default function EventDetail() {
           Back to Dashboard
         </button>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-gray-900">{event.name}</h1>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold break-words text-gray-900">{event.name}</h1>
               <StatusBadge status={event.status} />
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex gap-2 bg-white rounded-lg shadow p-1">
+            <div className="flex flex-wrap gap-2 bg-white rounded-lg shadow p-1">
               <button
                 onClick={() => handleStatusChange('live')}
-                className={`px-4 py-2 rounded transition ${
+                className={`px-3 py-2 sm:px-4 rounded transition ${
                   event.status === 'live'
                     ? 'bg-green-600 text-white'
                     : 'text-gray-700 hover:bg-gray-100'
@@ -111,7 +111,7 @@ export default function EventDetail() {
               </button>
               <button
                 onClick={() => handleStatusChange('paused')}
-                className={`px-4 py-2 rounded transition ${
+                className={`px-3 py-2 sm:px-4 rounded transition ${
                   event.status === 'paused'
                     ? 'bg-amber-600 text-white'
                     : 'text-gray-700 hover:bg-gray-100'
@@ -121,7 +121,7 @@ export default function EventDetail() {
               </button>
               <button
                 onClick={() => handleStatusChange('cancelled')}
-                className={`px-4 py-2 rounded transition ${
+                className={`px-3 py-2 sm:px-4 rounded transition ${
                   event.status === 'cancelled'
                     ? 'bg-red-600 text-white'
                     : 'text-gray-700 hover:bg-gray-100'

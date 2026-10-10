@@ -67,7 +67,7 @@ export default function ReportsTab({ eventId }) {
 
   return (
     <div>
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Card tone="bg-blue-50" label="Net revenue" value={money(summary.totalRevenue)} />
         <Card tone="bg-green-50" label="Paid orders" value={summary.totalOrders} />
         <Card tone="bg-purple-50" label="Tickets sold" value={summary.totalTicketsSold} />
@@ -96,7 +96,7 @@ export default function ReportsTab({ eventId }) {
 
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Tickets</h3>
-        <table className="w-full">
+        <div className="overflow-x-auto"><table className="w-full min-w-[600px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               {['Ticket type', 'Sold', 'Capacity', 'Revenue', 'Share'].map((h) => (
@@ -115,13 +115,13 @@ export default function ReportsTab({ eventId }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       {discountRows.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Discount codes</h3>
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[600px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {['Code', 'Uses', 'Given away'].map((h) => (
@@ -138,7 +138,7 @@ export default function ReportsTab({ eventId }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 

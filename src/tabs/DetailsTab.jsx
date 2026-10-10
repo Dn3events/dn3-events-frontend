@@ -56,7 +56,7 @@ export default function DetailsTab({ event, onEventUpdate }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           <div>
             <div className="mb-8">
               <p className="text-sm text-gray-600 mb-2">Event Name</p>
