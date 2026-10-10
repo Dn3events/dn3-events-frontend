@@ -296,7 +296,9 @@ export default function PublicCheckout() {
                       Read our privacy notice
                     </a>
                   ) : (
-                    <span>Ask the organiser for their privacy notice.</span>
+                    <a href={`#/privacy/${slug}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">
+                      Read our privacy notice
+                    </a>
                   )}
                 </p>
               </div>
