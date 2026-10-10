@@ -192,7 +192,13 @@ export default function PublicCheckout() {
                     <div key={ticket.id} className="flex items-center justify-between p-3 border border-gray-200 rounded">
                       <div>
                         <h3 className="font-semibold text-gray-900">{ticket.name}</h3>
-                        <p className="text-sm text-gray-600">{money(ticket.price)}</p>
+                        <p className="text-sm text-gray-600">{ticket.price === 0 ? 'Free' : money(ticket.price)}
+                          {ticket.earlyPrice && (
+                            <span className="ml-2 text-green-700">
+                              early price (was {money(ticket.regularPrice)}, ends {format(parseISO(ticket.earlyPriceEndsAt), 'MMM d, HH:mm')})
+                            </span>
+                          )}
+                        </p>
                         {ticket.soldOut && <p className="text-sm font-semibold text-red-600">Sold out</p>}
                       </div>
                       <input
@@ -274,7 +280,7 @@ export default function PublicCheckout() {
                 className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
               >
                 {processing && <Loader className="w-5 h-5 animate-spin" />}
-                {processing ? 'Processing...' : quote ? `Pay Now - ${money(quote.total)}` : 'Choose tickets'}
+                {processing ? 'Processing...' : quote ? (quote.total === 0 ? 'Get tickets (free)' : `Pay Now - ${money(quote.total)}`) : 'Choose tickets'}
               </button>
               {quoteError && <p className="text-red-600 text-sm">{quoteError}</p>}
             </form>

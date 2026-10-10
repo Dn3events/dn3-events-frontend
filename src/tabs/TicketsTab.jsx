@@ -5,6 +5,13 @@ import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { tickets as ticketsAPI } from '../api/tickets'
 
+// datetime-local wants local wall-clock time, not UTC
+function toLocalInput(iso) {
+  const d = new Date(iso)
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+  return d.toISOString().slice(0, 16)
+}
+
 export default function TicketsTab({ eventId }) {
   const { showToast } = useStore()
   const [eventTickets, setEventTickets] = useState([])
@@ -18,6 +25,7 @@ export default function TicketsTab({ eventId }) {
     description: '',
     price: '',
     earlyPrice: '',
+    earlyPriceEndsAt: '',
     quantity: '',
     groupHeading: '',
   })
@@ -49,7 +57,8 @@ export default function TicketsTab({ eventId }) {
         name: ticket.name,
         description: ticket.description || '',
         price: ticket.price.toString(),
-        earlyPrice: ticket.earlyPrice ? ticket.earlyPrice.toString() : '',
+        earlyPrice: ticket.earlyPrice !== null && ticket.earlyPrice !== undefined ? ticket.earlyPrice.toString() : '',
+        earlyPriceEndsAt: ticket.earlyPriceEndsAt ? toLocalInput(ticket.earlyPriceEndsAt) : '',
         quantity: ticket.quantity ? ticket.quantity.toString() : '',
         groupHeading: ticket.groupHeading || '',
       })
@@ -60,6 +69,7 @@ export default function TicketsTab({ eventId }) {
         description: '',
         price: '',
         earlyPrice: '',
+        earlyPriceEndsAt: '',
         quantity: '',
         groupHeading: '',
       })
@@ -82,7 +92,8 @@ export default function TicketsTab({ eventId }) {
       name: formData.name,
       description: formData.description,
       price: parseFloat(formData.price),
-      earlyPrice: formData.earlyPrice ? parseFloat(formData.earlyPrice) : null,
+      earlyPrice: formData.earlyPrice !== '' ? parseFloat(formData.earlyPrice) : null,
+      earlyPriceEndsAt: formData.earlyPrice !== '' && formData.earlyPriceEndsAt ? new Date(formData.earlyPriceEndsAt).toISOString() : null,
       quantity: formData.quantity ? parseInt(formData.quantity) : null,
       groupHeading: formData.groupHeading || null,
       visible: true,
@@ -106,7 +117,7 @@ export default function TicketsTab({ eventId }) {
       setIsModalOpen(false)
       setEditingId(null)
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to save ticket', 'error')
+      showToast(err.response?.data?.error || err.response?.data?.message || 'Failed to save ticket', 'error')
     } finally {
       setSaving(false)
     }
@@ -125,7 +136,7 @@ export default function TicketsTab({ eventId }) {
 
   const handleToggleVisibility = async (ticket) => {
     try {
-      const res = await ticketsAPI.update(eventId, ticket.id, { visible: !ticket.visible })
+      const res = await ticketsAPI.setVisibility(eventId, ticket.id, { visible: !ticket.visible })
       setEventTickets((prev) =>
         prev.map((t) => (t.id === ticket.id ? res.data.data : t))
       )
@@ -293,6 +304,21 @@ export default function TicketsTab({ eventId }) {
               />
             </div>
           </div>
+
+          {formData.earlyPrice !== '' && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">Early price ends</label>
+              <input
+                type="datetime-local"
+                name="earlyPriceEndsAt"
+                value={formData.earlyPriceEndsAt}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-600 mt-1">After this time the normal price applies.</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
