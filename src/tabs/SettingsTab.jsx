@@ -19,7 +19,7 @@ export default function SettingsTab({ eventId }) {
   const [userForm, setUserForm] = useState({
     name: '',
     email: '',
-    role: 'editor',
+    role: 'viewer',
   })
 
   const handleChange = (e) => {
@@ -36,7 +36,7 @@ export default function SettingsTab({ eventId }) {
   }
 
   const handleOpenUserModal = () => {
-    setUserForm({ name: '', email: '', role: 'editor' })
+    setUserForm({ name: '', email: '', role: 'viewer' })
     setIsModalOpen(true)
   }
 
@@ -67,12 +67,9 @@ export default function SettingsTab({ eventId }) {
   }
 
   const roleDescriptions = {
-    web_manager: 'Widget & online page only',
-    viewer: 'View reports & sales',
-    support: 'Resend tickets, refunds, guest list',
-    editor: 'Edit event, tickets, discounts, buyer questions',
-    organiser: 'Financing, add-ons',
-    administrator: 'Full access',
+    owner: 'Full access, including fees and team',
+    manager: 'Edit event, tickets, discounts, guests; view orders and reports',
+    viewer: 'View-only access to the event, orders and reports',
   }
 
   return (
@@ -361,12 +358,9 @@ export default function SettingsTab({ eventId }) {
                   onChange={handleUserChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="web_manager">Web Manager</option>
                   <option value="viewer">Viewer</option>
-                  <option value="support">Support</option>
-                  <option value="editor">Editor</option>
-                  <option value="organiser">Organiser</option>
-                  <option value="administrator">Administrator</option>
+                  <option value="manager">Manager</option>
+                  <option value="owner">Owner</option>
                 </select>
                 <p className="text-xs text-gray-600 mt-2">{roleDescriptions[userForm.role]}</p>
               </div>
