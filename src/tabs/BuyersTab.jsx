@@ -1,11 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useStore } from '../store/useStore'
 import { Plus, Upload } from 'lucide-react'
 import Modal from '../components/Modal'
+import { orders as ordersAPI } from '../api/orders'
+import { questions as questionsAPI } from '../api/questions'
+
+const errorOf = (err, fallback) => err.response?.data?.error || err.response?.data?.message || fallback
 import { format, parseISO } from 'date-fns'
 
 export default function BuyersTab({ eventId }) {
-  const { orders, tickets, buyerQuestions, addBuyerQuestion, updateBuyerQuestion, deleteBuyerQuestion, showToast } = useStore()
+  const { showToast } = useStore()
+  const [orders, setOrders] = useState([])
+  const [eventQuestions, setEventQuestions] = useState([])
+
+  const load = useCallback(async () => {
+    try {
+      const [o, q] = await Promise.all([ordersAPI.listByEvent(eventId), questionsAPI.listByEvent(eventId)])
+      setOrders(o.data.data)
+      setEventQuestions(q.data.data)
+    } catch (err) {
+      showToast(errorOf(err, 'Failed to load buyers'), 'error')
+    }
+  }, [eventId, showToast])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
   const [activeSubTab, setActiveSubTab] = useState('guestList')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -16,9 +37,7 @@ export default function BuyersTab({ eventId }) {
     required: false,
   })
 
-  const eventOrders = orders.filter((o) => o.eventId === eventId && o.status === 'paid')
-  const eventTickets = tickets.filter((t) => t.eventId === eventId)
-  const eventQuestions = buyerQuestions.filter((q) => q.eventId === eventId)
+  const eventOrders = orders.filter((o) => o.status === 'paid')
 
   // Build unique guests from orders
   const guests = []
@@ -30,7 +49,9 @@ export default function BuyersTab({ eventId }) {
         name: order.buyerName,
         email: order.buyerEmail,
         postcode: order.buyerPostcode,
-        ticketCount: eventOrders.filter((o) => o.buyerEmail === order.buyerEmail).length,
+        ticketCount: eventOrders
+          .filter((o) => o.buyerEmail === order.buyerEmail)
+          .reduce((sum, o) => sum + o.items.reduce((n, i) => n + i.quantity, 0), 0),
         createdAt: order.createdAt,
       })
     }
@@ -65,38 +86,45 @@ export default function BuyersTab({ eventId }) {
     }))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.question.trim()) {
       showToast('Please fill in question text', 'error')
       return
     }
 
     const questionData = {
-      eventId,
       question: formData.question,
       type: formData.type,
       options: formData.type === 'dropdown' ? formData.options.split('\n').filter((o) => o.trim()) : [],
       required: formData.required,
-      enabled: true,
       sortOrder: eventQuestions.length + 1,
-      perTransaction: false,
+      perTransaction: true,
     }
 
-    if (editingId) {
-      updateBuyerQuestion(editingId, questionData)
-      showToast('Question updated')
-    } else {
-      addBuyerQuestion(questionData)
-      showToast('Question added')
+    try {
+      if (editingId) {
+        await questionsAPI.update(eventId, editingId, questionData)
+        showToast('Question updated')
+      } else {
+        await questionsAPI.create(eventId, questionData)
+        showToast('Question added')
+      }
+      setIsModalOpen(false)
+      setEditingId(null)
+      load()
+    } catch (err) {
+      showToast(errorOf(err, 'Failed to save question'), 'error')
     }
-
-    setIsModalOpen(false)
-    setEditingId(null)
   }
 
-  const handleDeleteQuestion = (questionId) => {
-    deleteBuyerQuestion(questionId)
-    showToast('Question deleted')
+  const handleDeleteQuestion = async (questionId) => {
+    try {
+      await questionsAPI.delete(eventId, questionId)
+      showToast('Question deleted')
+      load()
+    } catch (err) {
+      showToast(errorOf(err, 'Failed to delete question'), 'error')
+    }
   }
 
   return (
