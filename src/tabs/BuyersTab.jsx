@@ -56,6 +56,21 @@ export default function BuyersTab({ eventId }) {
     }
   }
 
+  const downloadBuyerData = async (email) => {
+    try {
+      const res = await ordersAPI.subjectData(eventId, email)
+      const blob = new Blob([JSON.stringify(res.data.data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'data-held-' + email.replace(/[^a-z0-9]+/gi, '-') + '.json'
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      showToast(errorOf(err, 'Only the event owner can download buyer data'), 'error')
+    }
+  }
+
   const eraseBuyer = async () => {
     const target = eraseTarget
     setEraseTarget(null)
@@ -243,6 +258,7 @@ export default function BuyersTab({ eventId }) {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">{guest.marketing ? 'Yes' : 'No'}</td>
                       <td className="px-6 py-4 text-sm">
+                        <button onClick={() => downloadBuyerData(guest.email)} className="text-indigo-600 hover:underline mr-3">Download data</button>
                         <button onClick={() => setEraseTarget(guest)} className="text-red-600 hover:underline">Erase</button>
                       </td>
                     </tr>
