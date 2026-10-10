@@ -4,7 +4,7 @@ import { checkouts } from '../api/checkouts'
 
 // DRAFT: wording awaiting the owner's approval (a solicitor check is advisable).
 // The controller name is the one place that identifies who is legally responsible for the data.
-export const DEFAULT_CONTROLLER_NAME = 'DN3 Events'
+export const DEFAULT_CONTROLLER_NAME = 'Foundry Events Limited'
 export const DEFAULT_CONTROLLER_EMAIL = 'dn3events@gmail.com'
 export const RETENTION_MONTHS = 36
 
@@ -42,6 +42,8 @@ export default function PrivacyNotice() {
           <P>
             {controller} (&ldquo;we&rdquo;) is responsible for the personal information you give us when you buy a
             ticket. You can contact us at <a className="text-indigo-600 underline" href={`mailto:${email}`}>{email}</a>.
+            Tickets are sold through the DN3 Events ticketing system, which handles your information on our behalf and
+            only as we instruct.
           </P>
 
           <H>What we collect</H>
@@ -67,7 +69,7 @@ export default function PrivacyNotice() {
           <L items={[
             'Stripe, to take payments and process refunds.',
             'Brevo, to send ticket and confirmation emails.',
-            'Railway, which hosts our systems and database.',
+            'DN3 Events, which provides the ticketing system, and Railway, which hosts it and its database.',
             'Event staff at the door, who can see your name and ticket when they scan it.',
           ]} />
           <P>

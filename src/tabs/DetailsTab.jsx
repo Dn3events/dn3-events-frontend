@@ -192,7 +192,7 @@ export default function DetailsTab({ event, onEventUpdate }) {
 
         <div>
           <label className="block text-sm font-semibold text-gray-900 mb-2">Who is responsible for buyer data (name)</label>
-          <input name="controllerName" value={formData.controllerName} onChange={handleChange} placeholder="DN3 Events" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <input name="controllerName" value={formData.controllerName} onChange={handleChange} placeholder="Foundry Events Limited" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
         </div>
 
         <div>
