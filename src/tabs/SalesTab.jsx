@@ -27,6 +27,7 @@ export default function SalesTab({ eventId }) {
   const [refundAmount, setRefundAmount] = useState('')
   const [refundReason, setRefundReason] = useState('')
   const [confirmRefund, setConfirmRefund] = useState(false)
+  const [refundTicketIds, setRefundTicketIds] = useState([])
 
   const load = useCallback(async () => {
     try {
@@ -98,6 +99,7 @@ export default function SalesTab({ eventId }) {
     setConfirmRefund(false)
     setRefundAmount('')
     setRefundReason('')
+    setRefundTicketIds([])
   }
 
   if (loading) {
@@ -108,6 +110,18 @@ export default function SalesTab({ eventId }) {
     )
   }
 
+  // Face value of a ticket, used only to suggest a refund amount. The organiser can change it.
+  const faceValue = (t) => {
+    const item = (selected?.items || []).find((i) => i.ticketId === t.ticketId)
+    return item ? Number(item.unitPrice) : 0
+  }
+  const toggleRefundTicket = (t) => {
+    const next = refundTicketIds.includes(t.id) ? refundTicketIds.filter((id) => id !== t.id) : [...refundTicketIds, t.id]
+    setRefundTicketIds(next)
+    const chosen = (selected?.tickets || []).filter((x) => next.includes(x.id))
+    const suggested = Math.min(chosen.reduce((sum, x) => sum + faceValue(x), 0), refundable)
+    setRefundAmount(next.length && suggested > 0 ? suggested.toFixed(2) : '')
+  }
   const refundable = selected ? Number(selected.total) - Number(selected.refundedAmount) : 0
   const canRefund = selected && ['paid', 'review'].includes(selected.status) && refundable > 0 && selected.stripePaymentIntentId
 
@@ -304,10 +318,24 @@ export default function SalesTab({ eventId }) {
                     onChange={(e) => setRefundAmount(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
-                  {refundAmount !== '' && Number(refundAmount) < refundable && (
-                    <p className="text-xs text-gray-600 mt-1">A partial refund keeps the tickets valid. Revoke any tickets you are taking back above.</p>
+                  {refundAmount !== '' && Number(refundAmount) < refundable && refundTicketIds.length === 0 && (
+                    <p className="text-xs text-gray-600 mt-1">A partial refund keeps every ticket valid unless you tick tickets to cancel below.</p>
                   )}
                 </div>
+                {(selected.tickets || []).some((t) => t.status === 'valid' && !t.scanned) && (
+                  <div>
+                    <p className="text-sm text-gray-700 mb-1">Cancel these tickets with the refund (optional)</p>
+                    {(selected.tickets || []).map((t, idx) =>
+                      t.status === 'valid' && !t.scanned ? (
+                        <label key={t.id} className="flex items-center gap-2 text-sm text-gray-900">
+                          <input type="checkbox" checked={refundTicketIds.includes(t.id)} onChange={() => toggleRefundTicket(t)} />
+                          {t.ticketName} #{idx + 1}
+                        </label>
+                      ) : null
+                    )}
+                    {refundTicketIds.length > 0 && <p className="text-xs text-gray-600 mt-1">Amount filled in from ticket prices. Change it if a discount or fee applied.</p>}
+                  </div>
+                )}
                 <input
                   type="text"
                   placeholder="Reason (optional)"
@@ -322,6 +350,7 @@ export default function SalesTab({ eventId }) {
                       run(async () => {
                         await ordersAPI.refund(eventId, selected.id, {
                           ...(refundAmount !== '' && { amount: Number(refundAmount) }),
+                          ...(refundTicketIds.length > 0 && { ticketIds: refundTicketIds }),
                           ...(refundReason && { reason: refundReason }),
                         })
                         setConfirmRefund(false)
@@ -333,7 +362,7 @@ export default function SalesTab({ eventId }) {
                   >
                     {busy ? 'Refunding...' : `Refund ${refundAmount !== '' ? money(refundAmount) : money(refundable)}`}
                   </button>
-                  <button onClick={() => setConfirmRefund(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm">
+                  <button onClick={() => { setConfirmRefund(false); setRefundTicketIds([]) }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm">
                     Back
                   </button>
                 </div>

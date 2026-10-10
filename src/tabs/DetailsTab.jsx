@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
-import { Upload } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { events as eventsAPI } from '../api/events'
 
@@ -12,7 +11,7 @@ export default function DetailsTab({ event, onEventUpdate }) {
     name: event.name || '',
     description: (event.description || '').replace(/<[^>]*>/g, ''),
     websiteUrl: event.websiteUrl || '',
-    logo: event.logo || null,
+    logoUrl: event.logoUrl || '',
   })
 
   const handleChange = (e) => {
@@ -20,32 +19,25 @@ export default function DetailsTab({ event, onEventUpdate }) {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleLogoUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (ev) => {
-        setFormData((prev) => ({ ...prev, logo: ev.target.result }))
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
   const handleSave = async () => {
     try {
       setSaving(true)
       const updates = {
-        name: formData.name,
-        description: `<p>${formData.description}</p>`,
-        websiteUrl: formData.websiteUrl,
-        logo: formData.logo,
+        name: formData.name.trim(),
+        description: formData.description,
+        websiteUrl: formData.websiteUrl.trim(),
+        logoUrl: formData.logoUrl.trim(),
+      }
+      if (!updates.name) {
+        showToast('The event needs a name', 'error')
+        return
       }
       await eventsAPI.update(event.id, updates)
       if (onEventUpdate) onEventUpdate(updates)
       setIsEditing(false)
       showToast('Event details updated')
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to save changes', 'error')
+      showToast(err.response?.data?.error || err.response?.data?.message || 'Failed to save changes', 'error')
     } finally {
       setSaving(false)
     }
@@ -73,14 +65,18 @@ export default function DetailsTab({ event, onEventUpdate }) {
 
             <div className="mb-8">
               <p className="text-sm text-gray-600 mb-2">Description</p>
-              <p className="text-gray-700">{event.description.replace(/<[^>]*>/g, '')}</p>
+              <p className="text-gray-700">{(event.description || '').replace(/<[^>]*>/g, '')}</p>
             </div>
 
             <div className="mb-8">
               <p className="text-sm text-gray-600 mb-2">Website</p>
-              <a href={event.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                {event.websiteUrl}
-              </a>
+              {/^https?:\/\//i.test(event.websiteUrl || '') ? (
+                <a href={event.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  {event.websiteUrl}
+                </a>
+              ) : (
+                <p className="text-gray-600">Not set</p>
+              )}
             </div>
           </div>
 
@@ -108,17 +104,18 @@ export default function DetailsTab({ event, onEventUpdate }) {
             <div>
               <p className="text-sm text-gray-600 mb-2">Sales Period</p>
               <p className="text-gray-900">
-                {format(parseISO(event.salesOpenDate), 'MMM d')} to{' '}
-                {format(parseISO(event.salesCloseDate), 'MMM d, yyyy')}
+                {event.salesOpenDate && event.salesCloseDate
+                  ? `${format(parseISO(event.salesOpenDate), 'MMM d')} to ${format(parseISO(event.salesCloseDate), 'MMM d, yyyy')}`
+                  : 'Not set'}
               </p>
             </div>
           </div>
         </div>
 
-        {event.logo && (
+        {event.logoUrl && (
           <div className="mt-8">
             <p className="text-sm text-gray-600 mb-2">Logo</p>
-            <img src={event.logo} alt="Event logo" className="w-32 h-32 object-cover rounded-lg" />
+            <img src={event.logoUrl} alt="Event logo" className="w-32 h-32 object-cover rounded-lg" />
           </div>
         )}
       </div>
@@ -164,26 +161,16 @@ export default function DetailsTab({ event, onEventUpdate }) {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-2">Logo</label>
-          <div className="flex items-center gap-4">
-            {formData.logo && (
-              <img src={formData.logo} alt="Logo preview" className="w-24 h-24 object-cover rounded-lg" />
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoUpload}
-              className="hidden"
-              id="logo-edit"
-            />
-            <label
-              htmlFor="logo-edit"
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition"
-            >
-              <Upload className="w-4 h-4" />
-              Change Logo
-            </label>
-          </div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Logo link</label>
+          <input
+            type="url"
+            name="logoUrl"
+            placeholder="https://..."
+            value={formData.logoUrl}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {formData.logoUrl && <img src={formData.logoUrl} alt="Logo preview" className="mt-3 w-24 h-24 object-cover rounded-lg" />}
         </div>
 
         <div className="flex gap-4 pt-4">

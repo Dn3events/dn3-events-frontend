@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useStore } from '../store/useStore'
-import { Search, Loader } from 'lucide-react'
+import { Search, Loader, Camera } from 'lucide-react'
+import QrScanner from '../components/QrScanner'
 import { checkin } from '../api/checkin'
 import { format, parseISO } from 'date-fns'
 
@@ -27,6 +28,8 @@ export default function CheckInTab({ eventId }) {
   const [list, setList] = useState([])
   const [loadingList, setLoadingList] = useState(false)
   const inputRef = useRef(null)
+  const [cameraOn, setCameraOn] = useState(false)
+  const scanningRef = useRef(false)
 
   const refresh = useCallback(async () => {
     try {
@@ -79,6 +82,18 @@ export default function CheckInTab({ eventId }) {
     loadList()
   }
 
+  // One scan at a time: a second code arriving while the server is still answering waits its turn
+  // by being dropped; the scanner re-reads it once the cooldown has passed.
+  const onCameraCode = async (value) => {
+    if (scanningRef.current) return
+    scanningRef.current = true
+    try {
+      await doScan({ code: value.trim() })
+    } finally {
+      scanningRef.current = false
+    }
+  }
+
   return (
     <div className="space-y-8">
       {stats && (
@@ -111,6 +126,22 @@ export default function CheckInTab({ eventId }) {
           Check in
         </button>
       </form>
+
+      <div>
+        <button
+          type="button"
+          onClick={() => setCameraOn((on) => !on)}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
+        >
+          <Camera className="w-4 h-4" />
+          {cameraOn ? 'Stop camera' : 'Scan with camera'}
+        </button>
+        {cameraOn && (
+          <div className="mt-4">
+            <QrScanner onCode={onCameraCode} />
+          </div>
+        )}
+      </div>
 
       {result && (
         <div className={`border-2 rounded-lg p-6 ${RESULT_STYLE[result.result] || RESULT_STYLE.invalid}`}>

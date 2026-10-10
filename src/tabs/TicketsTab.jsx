@@ -4,6 +4,7 @@ import { Plus, GripVertical, Edit3, Trash2, Loader } from 'lucide-react'
 import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { tickets as ticketsAPI } from '../api/tickets'
+import DiscountCodes from '../components/DiscountCodes'
 
 // datetime-local wants local wall-clock time, not UTC
 function toLocalInput(iso) {
@@ -364,6 +365,8 @@ export default function TicketsTab({ eventId }) {
           </div>
         </div>
       </Modal>
+
+      <DiscountCodes eventId={eventId} />
 
       <ConfirmDialog
         isOpen={!!deleteConfirm}
