@@ -1,15 +1,10 @@
 import client from './client'
 
 export const reports = {
-  getEventAnalytics: (eventId) =>
-    client.get(`/events/${eventId}/analytics`),
-
-  getSalesReport: (eventId, params = {}) =>
-    client.get(`/events/${eventId}/reports/sales`, { params }),
-
-  getAttendanceReport: (eventId, params = {}) =>
-    client.get(`/events/${eventId}/reports/attendance`, { params }),
-
-  getDemographicsReport: (eventId) =>
-    client.get(`/events/${eventId}/reports/demographics`),
+  summary: (eventId, params = {}) => client.get(`/events/${eventId}/reports/summary`, { params }),
+  revenueOverTime: (eventId) => client.get(`/events/${eventId}/reports/revenue-over-time`),
+  tickets: (eventId) => client.get(`/events/${eventId}/reports/tickets`),
+  discounts: (eventId) => client.get(`/events/${eventId}/reports/discounts`),
+  checkouts: (eventId) => client.get(`/events/${eventId}/reports/checkouts`),
+  location: (eventId) => client.get(`/events/${eventId}/reports/location`),
 }
