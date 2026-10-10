@@ -38,11 +38,14 @@ export function playScanResult(result) {
     if (!ctx) unlockAudio()
     if (!ctx) return
     if (ctx.state === 'suspended') ctx.resume()
-    if (result === 'admitted') {
+    if (result === 'open') {
+      tone(660, 0, 0.1, 'sine', 0.35)
+      navigator.vibrate?.(40)
+    } else if (result === 'admitted') {
       tone(880, 0, 0.14, 'sine', 0.5)
       tone(1320, 0.12, 0.3, 'sine', 0.5)
       navigator.vibrate?.(80)
-    } else if (result === 'duplicate') {
+    } else if (result === 'duplicate' || result === 'insufficient') {
       tone(220, 0, 0.25, 'sawtooth', 0.35)
       tone(220, 0.3, 0.25, 'sawtooth', 0.35)
       navigator.vibrate?.([150, 80, 150])

@@ -9,6 +9,7 @@ import { format, parseISO } from 'date-fns'
 const RESULT_STYLE = {
   admitted: 'bg-green-50 border-green-300 text-green-900',
   duplicate: 'bg-amber-50 border-amber-300 text-amber-900',
+  insufficient: 'bg-amber-50 border-amber-300 text-amber-900',
   revoked: 'bg-red-50 border-red-300 text-red-900',
   invalid: 'bg-red-50 border-red-300 text-red-900',
 }
@@ -31,6 +32,10 @@ export default function CheckInTab({ eventId }) {
   const inputRef = useRef(null)
   const [cameraOn, setCameraOn] = useState(false)
   const scanningRef = useRef(false)
+  // The panel that opens after a scan: nothing is admitted until the person at the door confirms.
+  const [pending, setPending] = useState(null)
+  const [pickCount, setPickCount] = useState(1)
+  const [confirming, setConfirming] = useState(false)
 
   const refresh = useCallback(async () => {
     try {
@@ -67,9 +72,58 @@ export default function CheckInTab({ eventId }) {
     e.preventDefault()
     const value = code.trim()
     if (!value) return
-    await doScan({ code: value })
+    await scanCode(value)
     setCode('')
     inputRef.current?.focus()
+  }
+
+  const pendingRef = useRef(false)
+
+  // First scan: look only. Opens the panel when there is someone to admit, otherwise shows why not.
+  const scanCode = async (value) => {
+    try {
+      const res = await checkin.lookup(eventId, value)
+      const r = res.data.result || 'invalid'
+      if (r === 'ready') {
+        const remaining = res.data.data.group?.remaining ?? 1
+        setResult(null)
+        setPickCount(1)
+        setPending({ code: value, ...res.data.data, remaining })
+        pendingRef.current = true
+        playScanResult('open')
+      } else {
+        setResult({ result: r, ...res.data })
+        playScanResult(r)
+      }
+    } catch {
+      setResult({ result: 'invalid', error: 'Could not reach the server. Do not admit until it works.' })
+      playScanResult('invalid')
+    }
+  }
+
+  const closePanel = () => {
+    setPending(null)
+    pendingRef.current = false
+    scanningRef.current = false
+  }
+
+  const confirmAdmit = async () => {
+    if (!pending || confirming) return
+    setConfirming(true)
+    try {
+      const res = await checkin.scan(eventId, { code: pending.code, count: pending.kind === 'group' ? pickCount : undefined })
+      const r = res.data.result || 'invalid'
+      setResult({ result: r, ...res.data })
+      playScanResult(r)
+    } catch {
+      setResult({ result: 'invalid', error: 'Could not reach the server. Nobody was admitted.' })
+      playScanResult('invalid')
+    } finally {
+      setConfirming(false)
+      closePanel()
+      refresh()
+      loadList()
+    }
   }
 
   const doScan = async (body) => {
@@ -92,9 +146,10 @@ export default function CheckInTab({ eventId }) {
     if (scanningRef.current) return
     scanningRef.current = true
     try {
-      await doScan({ code: value.trim() })
+      await scanCode(value.trim())
     } finally {
-      scanningRef.current = false
+      // While the panel is open the camera ignores further codes.
+      scanningRef.current = pendingRef.current
     }
   }
 
@@ -146,34 +201,71 @@ export default function CheckInTab({ eventId }) {
         </button>
       </form>
 
+      {pending && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
+          <div className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-6 shadow-xl">
+            <p className="text-sm text-gray-500">Ticket holder</p>
+            <p className="text-xl font-bold text-gray-900">{pending.holder}</p>
+            {pending.breakdown?.length > 0 && (
+              <p className="text-sm text-gray-600">{pending.breakdown.map((b) => `${b.count} x ${b.name}`).join(', ')}</p>
+            )}
+            {pending.kind === 'group' ? (
+              <>
+                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-gray-100 rounded-lg py-3"><p className="text-3xl font-bold">{pending.group.total}</p><p className="text-xs uppercase tracking-wide text-gray-600">On this QR</p></div>
+                  <div className="bg-gray-100 rounded-lg py-3"><p className="text-3xl font-bold">{pending.group.used}</p><p className="text-xs uppercase tracking-wide text-gray-600">Used</p></div>
+                  <div className="bg-green-100 rounded-lg py-3"><p className="text-3xl font-bold text-green-800">{pending.group.remaining}</p><p className="text-xs uppercase tracking-wide text-green-800">Left</p></div>
+                </div>
+                <p className="mt-5 text-center text-sm font-medium text-gray-700">How many are coming in now?</p>
+                <div className="mt-2 flex items-center justify-center gap-6">
+                  <button type="button" onClick={() => setPickCount((n) => Math.max(1, n - 1))} disabled={pickCount <= 1} className="w-16 h-16 rounded-full bg-gray-200 text-3xl font-bold disabled:opacity-40" aria-label="One fewer">-</button>
+                  <span className="text-5xl font-bold w-16 text-center">{pickCount}</span>
+                  <button type="button" onClick={() => setPickCount((n) => Math.min(pending.remaining, n + 1))} disabled={pickCount >= pending.remaining} className="w-16 h-16 rounded-full bg-gray-200 text-3xl font-bold disabled:opacity-40" aria-label="One more">+</button>
+                </div>
+                <p className="mt-1 text-center text-xs text-gray-500">That leaves {pending.remaining - pickCount} for later</p>
+              </>
+            ) : (
+              <p className="mt-4 text-center text-lg text-gray-800">One ticket: {pending.ticketName}</p>
+            )}
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button type="button" onClick={closePanel} disabled={confirming} className="py-4 rounded-lg bg-gray-200 text-gray-800 text-lg font-semibold">Cancel</button>
+              <button type="button" onClick={confirmAdmit} disabled={confirming} className="py-4 rounded-lg bg-green-600 hover:bg-green-700 text-white text-lg font-semibold">
+                {confirming ? 'Admitting...' : pending.kind === 'group' ? `Admit ${pickCount}` : 'Admit'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {result && (
         <div className={`border-2 rounded-lg p-6 ${RESULT_STYLE[result.result] || RESULT_STYLE.invalid}`}>
           <p className="text-2xl font-bold">
-            {result.result === 'duplicate' && result.data?.group?.total > 0 && result.data.group.remaining === 0 && result.data.group.total > 1
-              ? 'ALL TICKETS USED'
-              : result.result === 'admitted' && result.data?.group?.total > 1
-                ? 'ADMIT ONE'
-                : RESULT_TITLE[result.result] || 'NOT RECOGNISED'}
+            {result.result === 'admitted' && result.data?.admitted
+              ? `ADMITTED ${result.data.admitted}`
+              : result.result === 'duplicate' && result.data?.group?.total > 1
+                ? 'ALL TICKETS USED'
+                : result.result === 'insufficient'
+                  ? 'NOT ENOUGH LEFT'
+                  : RESULT_TITLE[result.result] || 'NOT RECOGNISED'}
           </p>
-          {result.data?.group?.total > 1 && (
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className="bg-white/70 rounded-lg py-2">
-                <p className="text-3xl font-bold">{result.data.group.total}</p>
-                <p className="text-xs uppercase tracking-wide">On this order</p>
+          {result.data?.group?.total > 0 && result.data.kind === 'group' && (
+            <>
+              {result.result === 'admitted' && (
+                <p className="mt-3 text-center">
+                  <span className="text-6xl font-extrabold">{result.data.group.remaining}</span>
+                  <span className="block text-sm uppercase tracking-wide">{result.data.group.remaining === 0 ? 'left - everyone is in' : 'left for the next scan'}</span>
+                </p>
+              )}
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white/70 rounded-lg py-2"><p className="text-2xl font-bold">{result.data.group.total}</p><p className="text-xs uppercase tracking-wide">On this order</p></div>
+                <div className="bg-white/70 rounded-lg py-2"><p className="text-2xl font-bold">{result.data.group.used}</p><p className="text-xs uppercase tracking-wide">Used</p></div>
+                <div className="bg-white/70 rounded-lg py-2"><p className="text-2xl font-bold">{result.data.group.remaining}</p><p className="text-xs uppercase tracking-wide">Left</p></div>
               </div>
-              <div className="bg-white/70 rounded-lg py-2">
-                <p className="text-3xl font-bold">{result.data.group.used}</p>
-                <p className="text-xs uppercase tracking-wide">Used</p>
-              </div>
-              <div className="bg-white/70 rounded-lg py-2">
-                <p className="text-3xl font-bold">{result.data.group.remaining}</p>
-                <p className="text-xs uppercase tracking-wide">Left</p>
-              </div>
-            </div>
+            </>
           )}
           {result.data && (
             <p className="mt-1 text-lg">
-              {result.data.holder} - {result.data.ticketName}
+              {result.data.holder}{result.data.ticketName ? ` - ${result.data.ticketName}` : ''}
               {result.result === 'duplicate' && result.data.scannedAt && ` (at ${format(parseISO(result.data.scannedAt), 'HH:mm')})`}
             </p>
           )}
