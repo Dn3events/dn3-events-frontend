@@ -164,7 +164,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow border-l-4 border-blue-600">
           <p className="text-gray-600 text-sm">Total Events</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalEvents}</p>
@@ -195,7 +195,7 @@ export default function Dashboard() {
           <div key={year} className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">{year}</h2>
             <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="w-full">
+              <div className="overflow-x-auto"><table className="w-full min-w-[600px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Event Name</th>
@@ -266,7 +266,7 @@ export default function Dashboard() {
                     )
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         ))

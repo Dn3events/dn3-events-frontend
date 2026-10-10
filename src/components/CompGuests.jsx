@@ -187,7 +187,7 @@ export default function CompGuests({ eventId }) {
         <div className="bg-white rounded-lg shadow p-12 text-center text-gray-600">No complimentary guests yet</div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[600px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {['Name', 'Email', 'Ticket', 'Added', ''].map((h) => (
@@ -214,7 +214,7 @@ export default function CompGuests({ eventId }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
     </div>

@@ -97,7 +97,7 @@ export default function CheckInTab({ eventId }) {
   return (
     <div className="space-y-8">
       {stats && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="text-sm text-gray-600">Tickets</p>
             <p className="text-2xl font-bold">{stats.total}</p>
