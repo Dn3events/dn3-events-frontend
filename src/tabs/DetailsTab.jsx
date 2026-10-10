@@ -11,6 +11,7 @@ export default function DetailsTab({ event, onEventUpdate }) {
     name: event.name || '',
     description: (event.description || '').replace(/<[^>]*>/g, ''),
     websiteUrl: event.websiteUrl || '',
+    privacyPolicyUrl: event.privacyPolicyUrl || '',
     logoUrl: event.logoUrl || '',
   })
 
@@ -26,6 +27,7 @@ export default function DetailsTab({ event, onEventUpdate }) {
         name: formData.name.trim(),
         description: formData.description,
         websiteUrl: formData.websiteUrl.trim(),
+        privacyPolicyUrl: formData.privacyPolicyUrl.trim(),
         logoUrl: formData.logoUrl.trim(),
       }
       if (!updates.name) {
@@ -66,6 +68,17 @@ export default function DetailsTab({ event, onEventUpdate }) {
             <div className="mb-8">
               <p className="text-sm text-gray-600 mb-2">Description</p>
               <p className="text-gray-700">{(event.description || '').replace(/<[^>]*>/g, '')}</p>
+            </div>
+
+            <div className="mb-8">
+              <p className="text-sm text-gray-600 mb-2">Privacy notice</p>
+              {/^https?:\/\//i.test(event.privacyPolicyUrl || '') ? (
+                <a href={event.privacyPolicyUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                  {event.privacyPolicyUrl}
+                </a>
+              ) : (
+                <p className="text-gray-600">Not set. Add one before selling tickets.</p>
+              )}
             </div>
 
             <div className="mb-8">
@@ -158,6 +171,19 @@ export default function DetailsTab({ event, onEventUpdate }) {
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Privacy notice link</label>
+          <input
+            type="url"
+            name="privacyPolicyUrl"
+            value={formData.privacyPolicyUrl}
+            onChange={handleChange}
+            placeholder="https://..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <p className="text-xs text-gray-500 mt-1">Shown to buyers at checkout.</p>
         </div>
 
         <div>
