@@ -8,6 +8,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import PublicCheckout from './pages/PublicCheckout'
 import PaymentSuccess from './pages/PaymentSuccess'
+import PrivacyNotice from './pages/PrivacyNotice'
 import ProtectedRoute from './components/ProtectedRoute'
 import Toast from './components/Toast'
 
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/checkout/:slug" element={<PublicCheckout />} />
+        <Route path="/privacy/:slug?" element={<PrivacyNotice />} />
         <Route path="/success" element={<PaymentSuccess />} />
 
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>

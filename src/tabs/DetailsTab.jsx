@@ -12,6 +12,8 @@ export default function DetailsTab({ event, onEventUpdate }) {
     description: (event.description || '').replace(/<[^>]*>/g, ''),
     websiteUrl: event.websiteUrl || '',
     privacyPolicyUrl: event.privacyPolicyUrl || '',
+    controllerName: event.controllerName || '',
+    controllerEmail: event.controllerEmail || '',
     logoUrl: event.logoUrl || '',
   })
 
@@ -28,6 +30,8 @@ export default function DetailsTab({ event, onEventUpdate }) {
         description: formData.description,
         websiteUrl: formData.websiteUrl.trim(),
         privacyPolicyUrl: formData.privacyPolicyUrl.trim(),
+        controllerName: formData.controllerName.trim() || null,
+        controllerEmail: formData.controllerEmail.trim() || null,
         logoUrl: formData.logoUrl.trim(),
       }
       if (!updates.name) {
@@ -183,7 +187,18 @@ export default function DetailsTab({ event, onEventUpdate }) {
             placeholder="https://..."
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          <p className="text-xs text-gray-500 mt-1">Shown to buyers at checkout.</p>
+          <p className="text-xs text-gray-500 mt-1">Leave blank to use the built-in privacy notice.</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Who is responsible for buyer data (name)</label>
+          <input name="controllerName" value={formData.controllerName} onChange={handleChange} placeholder="DN3 Events" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Privacy contact email</label>
+          <input type="email" name="controllerEmail" value={formData.controllerEmail} onChange={handleChange} placeholder="dn3events@gmail.com" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <p className="text-xs text-gray-500 mt-1">Shown on the privacy notice.</p>
         </div>
 
         <div>
