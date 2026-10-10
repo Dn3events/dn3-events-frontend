@@ -7,6 +7,10 @@ export const checkouts = {
   getBySlug: (slug) =>
     client.get(`/public/checkouts/${slug}`),
 
+  // The one price shown to buyers. Computed by the server with the same code that charges them.
+  quote: (slug, data) =>
+    client.post(`/public/checkouts/${slug}/quote`, data),
+
   create: (eventId, data) =>
     client.post(`/events/${eventId}/checkouts`, data),
 
