@@ -154,6 +154,8 @@ export default function CheckInTab({ eventId }) {
   }
 
 
+  const pct = stats && stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0
+
   const frameColour = !result ? 'border-white' : result.result === 'admitted' ? 'border-green-400' : result.result === 'invalid' || result.result === 'revoked' ? 'border-red-500' : 'border-amber-400'
 
   const pendingPanel = pending && (
@@ -236,7 +238,12 @@ export default function CheckInTab({ eventId }) {
       </div>
       <div className="absolute top-0 inset-x-0 flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <button type="button" onClick={() => { setCameraOn(false); setResult(null); closePanel() }} className="w-11 h-11 rounded-full bg-black/50 flex items-center justify-center text-2xl" aria-label="Close scanner">&times;</button>
-        {stats && <div className="px-4 py-2 rounded-full bg-black/50 text-sm font-semibold">{stats.checkedIn} / {stats.total} in</div>}
+        {stats && (
+          <div className="px-4 py-2 rounded-2xl bg-black/50 min-w-[150px] text-center">
+            <p className="text-sm font-semibold">{pct}% in <span className="text-white/70 font-normal">({stats.checkedIn} of {stats.total})</span></p>
+            <div className="mt-1.5 h-1.5 rounded-full bg-white/25 overflow-hidden"><div className="h-full rounded-full bg-green-400 transition-all" style={{ width: `${pct}%` }} /></div>
+          </div>
+        )}
         <div className="w-11" />
       </div>
       {!result && !pending && (
@@ -254,6 +261,17 @@ export default function CheckInTab({ eventId }) {
   return (
     <div className="space-y-8" onPointerDown={unlockAudio}>
       {scannerScreen}
+      {stats && (
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="flex items-baseline justify-between">
+            <p className="text-4xl font-extrabold text-gray-900">{pct}%</p>
+            <p className="text-sm text-gray-600">{stats.checkedIn} of {stats.total} scanned in</p>
+          </div>
+          <div className="mt-3 h-3 rounded-full bg-gray-200 overflow-hidden"><div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} /></div>
+          <p className="mt-2 text-sm text-gray-600">{stats.remaining} still to arrive</p>
+        </div>
+      )}
+
       {stats && (
         <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <div className="bg-blue-50 p-4 rounded-lg">
