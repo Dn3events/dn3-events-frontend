@@ -211,11 +211,11 @@ export default function CheckInTab({ eventId }) {
                   <span className="block text-sm uppercase tracking-wide">{result.data.group.remaining === 0 ? 'left - everyone is in' : 'left for the next scan'}</span>
                 </p>
               )}
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              {!cameraOn && <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="bg-white/70 rounded-lg py-2"><p className="text-2xl font-bold">{result.data.group.total}</p><p className="text-xs uppercase tracking-wide">On this order</p></div>
                 <div className="bg-white/70 rounded-lg py-2"><p className="text-2xl font-bold">{result.data.group.used}</p><p className="text-xs uppercase tracking-wide">Used</p></div>
                 <div className="bg-white/70 rounded-lg py-2"><p className="text-2xl font-bold">{result.data.group.remaining}</p><p className="text-xs uppercase tracking-wide">Left</p></div>
-              </div>
+              </div>}
             </>
           )}
           {result.data && (
