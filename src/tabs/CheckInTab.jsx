@@ -153,56 +153,34 @@ export default function CheckInTab({ eventId }) {
     }
   }
 
-  return (
-    <div className="space-y-8" onPointerDown={unlockAudio}>
-      {stats && (
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600">Tickets</p>
-            <p className="text-2xl font-bold">{stats.total}</p>
-          </div>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600">Checked in</p>
-            <p className="text-2xl font-bold">{stats.checkedIn}</p>
-          </div>
-          <div className="bg-orange-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600">Still to arrive</p>
-            <p className="text-2xl font-bold">{stats.remaining}</p>
-          </div>
+
+  const frameColour = !result ? 'border-white' : result.result === 'admitted' ? 'border-green-400' : result.result === 'invalid' || result.result === 'revoked' ? 'border-red-500' : 'border-amber-400'
+
+  const scannerScreen = cameraOn && (
+    <div className="fixed inset-0 z-[60] bg-black text-white select-none">
+      <QrScanner onCode={onCameraCode} fullscreen />
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+        <div className={`relative w-[68vw] max-w-[320px] aspect-square rounded-3xl border-4 ${frameColour} transition-colors shadow-[0_0_0_100vmax_rgba(0,0,0,0.55)]`} />
+      </div>
+      <div className="absolute top-0 inset-x-0 flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))]">
+        <button type="button" onClick={() => { setCameraOn(false); setResult(null); closePanel() }} className="w-11 h-11 rounded-full bg-black/50 flex items-center justify-center text-2xl" aria-label="Close scanner">&times;</button>
+        {stats && <div className="px-4 py-2 rounded-full bg-black/50 text-sm font-semibold">{stats.checkedIn} / {stats.total} in</div>}
+        <div className="w-11" />
+      </div>
+      {!result && !pending && (
+        <p className="absolute inset-x-0 bottom-[max(2.5rem,env(safe-area-inset-bottom))] text-center text-base text-white/90">Point at a ticket QR code</p>
+      )}
+      {result && !pending && (
+        <div className="absolute inset-x-0 bottom-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          {resultCard}
+          <button type="button" onClick={() => setResult(null)} className="mt-3 w-full py-4 rounded-xl bg-white text-black text-lg font-semibold">Scan next</button>
         </div>
       )}
+    </div>
+  )
 
-      <div>
-        <button
-          type="button"
-          onClick={() => { unlockAudio(); setCameraOn((on) => !on) }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700"
-        >
-          <Camera className="w-6 h-6" />
-          {cameraOn ? 'Stop camera' : 'Scan with camera'}
-        </button>
-        {cameraOn && (
-          <div className="mt-4">
-            <QrScanner onCode={onCameraCode} />
-          </div>
-        )}
-      </div>
-
-      <form onSubmit={submitCode} className="flex flex-col gap-3 sm:flex-row">
-        <input
-          ref={inputRef}
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Or type the ticket code"
-          className="min-w-0 flex-1 px-4 py-3 border-2 border-blue-300 rounded-lg text-lg font-mono focus:ring-2 focus:ring-blue-500"
-        />
-        <button type="submit" className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
-          Check in
-        </button>
-      </form>
-
-      {pending && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
+  const pendingPanel = pending && (
+    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
           <div className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-6 shadow-xl">
             <p className="text-sm text-gray-500">Ticket holder</p>
             <p className="text-xl font-bold text-gray-900">{pending.holder}</p>
@@ -235,10 +213,10 @@ export default function CheckInTab({ eventId }) {
             </div>
           </div>
         </div>
-      )}
+  )
 
-      {result && (
-        <div className={`border-2 rounded-lg p-6 ${RESULT_STYLE[result.result] || RESULT_STYLE.invalid}`}>
+  const resultCard = result && (
+    <div className={`border-2 rounded-lg p-6 ${RESULT_STYLE[result.result] || RESULT_STYLE.invalid}`}>
           <p className="text-2xl font-bold">
             {result.result === 'admitted' && result.data?.admitted
               ? `ADMITTED ${result.data.admitted}`
@@ -271,7 +249,55 @@ export default function CheckInTab({ eventId }) {
           )}
           {result.result !== 'admitted' && result.error && <p className="mt-1 text-sm">{result.error}</p>}
         </div>
+  )
+
+  return (
+    <div className="space-y-8" onPointerDown={unlockAudio}>
+      {scannerScreen}
+      {stats && (
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-600">Tickets</p>
+            <p className="text-2xl font-bold">{stats.total}</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-600">Checked in</p>
+            <p className="text-2xl font-bold">{stats.checkedIn}</p>
+          </div>
+          <div className="bg-orange-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-600">Still to arrive</p>
+            <p className="text-2xl font-bold">{stats.remaining}</p>
+          </div>
+        </div>
       )}
+
+      <div>
+        <button
+          type="button"
+          onClick={() => { unlockAudio(); setResult(null); setCameraOn(true) }}
+          className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700"
+        >
+          <Camera className="w-6 h-6" />
+          Scan tickets
+        </button>
+      </div>
+
+      <form onSubmit={submitCode} className="flex flex-col gap-3 sm:flex-row">
+        <input
+          ref={inputRef}
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="Or type the ticket code"
+          className="min-w-0 flex-1 px-4 py-3 border-2 border-blue-300 rounded-lg text-lg font-mono focus:ring-2 focus:ring-blue-500"
+        />
+        <button type="submit" className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">
+          Check in
+        </button>
+      </form>
+
+      {pendingPanel}
+
+      {!cameraOn && resultCard}
 
       <div>
         <div className="relative mb-4">

@@ -4,7 +4,7 @@ import jsQR from 'jsqr'
 // Camera QR scanner. Uses the browser's BarcodeDetector when there is one and jsQR otherwise
 // (iOS Safari has no BarcodeDetector). Calls onCode once per distinct code; the same code is
 // ignored for `cooldownMs` so one held-up ticket is not submitted over and over.
-export default function QrScanner({ onCode, cooldownMs = 4000 }) {
+export default function QrScanner({ onCode, cooldownMs = 4000, fullscreen = false }) {
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const lastRef = useRef({ code: null, at: 0 })
@@ -84,7 +84,15 @@ export default function QrScanner({ onCode, cooldownMs = 4000 }) {
     }
   }, [cooldownMs])
 
-  if (error) return <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">{error}</p>
+  if (error) return <p className={fullscreen ? 'absolute inset-x-4 top-1/3 text-center text-base text-white bg-red-700/90 rounded-xl p-4' : 'text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3'}>{error}</p>
+  if (fullscreen) {
+    return (
+      <>
+        <video ref={videoRef} playsInline muted className="absolute inset-0 w-full h-full object-cover bg-black" />
+        <canvas ref={canvasRef} className="hidden" />
+      </>
+    )
+  }
   return (
     <div className="relative max-w-md mx-auto">
       <video ref={videoRef} playsInline muted className="w-full rounded-lg bg-black" />
