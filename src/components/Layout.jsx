@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
-import { Calendar, Home, LogOut, Menu, X } from 'lucide-react'
+import { Home, LogOut, Menu, X } from 'lucide-react'
 import { useAuthStore } from '../store/useAuthStore'
 
 export default function Layout() {
@@ -14,17 +14,16 @@ export default function Layout() {
   const isEventPage = location.pathname.includes('/event/')
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-paper overflow-hidden">
       {menuOpen && <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setMenuOpen(false)} />}
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar text-white flex flex-col shadow-lg transform transition-transform md:static md:translate-x-0 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="p-6 border-b border-gray-700">
           <div className="flex items-center gap-2">
-            <Calendar className="w-8 h-8 text-blue-400" />
             <div>
-              <h1 className="text-xl font-bold">DN3 Events</h1>
-              <p className="text-xs text-gray-400">Event Platform</p>
+              <h1 className="text-xl font-extrabold tracking-[0.18em]">DN3 <span className="text-brand">EVENTS</span></h1>
+              <p className="text-[11px] uppercase tracking-widest text-gray-400 mt-1">Foundry Events</p>
             </div>
           </div>
         </div>
@@ -35,7 +34,7 @@ export default function Layout() {
             to="/"
             className={`flex items-center gap-3 px-4 py-2 rounded-lg transition ${
               !isEventPage && location.pathname === '/'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-brand text-ink font-semibold'
                 : 'text-gray-300 hover:bg-gray-800'
             }`}
           >
@@ -66,17 +65,18 @@ export default function Layout() {
       {/* Main Content */}
       <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="bg-white border-b border-gray-200 px-4 py-3 md:px-8 md:py-4 shadow-sm">
+        <div className="bg-ink text-white border-b-[3px] border-brand px-4 py-3 md:px-8 md:py-4">
           <div className="flex items-center justify-between">
-            <button className="md:hidden mr-3 p-2 -ml-2 text-gray-700" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
+            <button className="md:hidden mr-3 p-2 -ml-2 text-white" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
               {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            <h2 className="flex-1 text-lg font-semibold text-gray-800">
-              {!isEventPage ? 'Dashboard' : 'Event Management'}
+            <h2 className="flex-1 text-base md:text-lg font-extrabold tracking-[0.18em]">
+              DN3 <span className="text-brand">EVENTS</span>
+              <span className="hidden sm:inline ml-3 text-xs font-medium tracking-widest text-gray-400 uppercase">{!isEventPage ? 'Dashboard' : 'Event Management'}</span>
             </h2>
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                AD
+              <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center text-ink font-bold">
+                {(user?.name || 'U').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
               </div>
             </div>
           </div>

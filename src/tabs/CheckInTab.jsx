@@ -241,7 +241,7 @@ export default function CheckInTab({ eventId }) {
         {stats && (
           <div className="px-4 py-2 rounded-2xl bg-black/50 min-w-[150px] text-center">
             <p className="text-sm font-semibold">{pct}% in <span className="text-white/70 font-normal">({stats.checkedIn} of {stats.total})</span></p>
-            <div className="mt-1.5 h-1.5 rounded-full bg-white/25 overflow-hidden"><div className="h-full rounded-full bg-green-400 transition-all" style={{ width: `${pct}%` }} /></div>
+            <div className="mt-1.5 h-1.5 rounded-full bg-white/25 overflow-hidden"><div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} /></div>
           </div>
         )}
         <div className="w-11" />
@@ -267,22 +267,22 @@ export default function CheckInTab({ eventId }) {
             <p className="text-4xl font-extrabold text-gray-900">{pct}%</p>
             <p className="text-sm text-gray-600">{stats.checkedIn} of {stats.total} scanned in</p>
           </div>
-          <div className="mt-3 h-3 rounded-full bg-gray-200 overflow-hidden"><div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} /></div>
+          <div className="mt-3 h-3 rounded-full bg-gray-200 overflow-hidden"><div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} /></div>
           <p className="mt-2 text-sm text-gray-600">{stats.remaining} still to arrive</p>
         </div>
       )}
 
       {stats && (
         <div className="grid grid-cols-3 gap-2 sm:gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
+          <div className="bg-white border border-gray-200 p-4 rounded-lg">
             <p className="text-sm text-gray-600">Tickets</p>
             <p className="text-2xl font-bold">{stats.total}</p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg">
+          <div className="bg-white border border-gray-200 p-4 rounded-lg">
             <p className="text-sm text-gray-600">Checked in</p>
             <p className="text-2xl font-bold">{stats.checkedIn}</p>
           </div>
-          <div className="bg-orange-50 p-4 rounded-lg">
+          <div className="bg-white border border-gray-200 p-4 rounded-lg">
             <p className="text-sm text-gray-600">Still to arrive</p>
             <p className="text-2xl font-bold">{stats.remaining}</p>
           </div>
@@ -293,7 +293,7 @@ export default function CheckInTab({ eventId }) {
         <button
           type="button"
           onClick={() => { unlockAudio(); setResult(null); setCameraOn(true) }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700"
+          className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-ink text-white rounded-xl text-lg font-semibold hover:bg-black border-b-4 border-brand"
         >
           <Camera className="w-6 h-6" />
           Scan tickets
