@@ -90,17 +90,29 @@ export default function EventDetail() {
       <div className="mb-8">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition"
+          className="flex items-center gap-2 text-gray-600 hover:text-ink mb-4 transition"
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Dashboard
         </button>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3 mb-2">
-              <h1 className="text-2xl md:text-3xl font-bold break-words text-gray-900">{event.name}</h1>
-              <StatusBadge status={event.status} />
+          <div className="min-w-0 flex items-center gap-4">
+            {event.logoUrl && (
+              <img src={event.logoUrl} alt="" className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-ink object-contain p-1.5 shrink-0" />
+            )}
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-widest text-gray-500 mb-1">A Foundry Events project</p>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-2xl md:text-3xl font-extrabold break-words text-ink">{event.name}</h1>
+                <StatusBadge status={event.status} />
+              </div>
+              {(event.startDate || event.venue) && (
+                <p className="text-sm text-gray-600 mt-1">
+                  {event.startDate && new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {event.startDate && event.venue ? ' · ' : ''}{event.venue}
+                </p>
+              )}
             </div>
           </div>
 
@@ -164,7 +176,7 @@ export default function EventDetail() {
               onClick={() => setCurrentTab(idx)}
               className={`px-6 py-4 font-medium transition whitespace-nowrap ${
                 currentTab === idx
-                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  ? 'text-ink border-b-[3px] border-brand font-semibold'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >

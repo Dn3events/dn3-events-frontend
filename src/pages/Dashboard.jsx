@@ -95,7 +95,7 @@ export default function Dashboard() {
     const totalSold = eventTickets.reduce((sum, t) => sum + t.sold, 0)
     const totalRevenue = eventOrders
       .filter((o) => o.status === 'paid')
-      .reduce((sum, o) => sum + o.total, 0)
+      .reduce((sum, o) => sum + Number(o.total || 0), 0)
 
     return { totalSold, totalRevenue, orderCount: eventOrders.length }
   }
@@ -105,7 +105,7 @@ export default function Dashboard() {
     liveEvents: events.filter((e) => e.status === 'live').length,
     totalRevenue: orders
       .filter((o) => o.status === 'paid')
-      .reduce((sum, o) => sum + o.total, 0),
+      .reduce((sum, o) => sum + Number(o.total || 0), 0),
     totalTicketsSold: tickets.reduce((sum, t) => sum + t.sold, 0),
   }
 
