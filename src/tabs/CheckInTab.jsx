@@ -156,29 +156,6 @@ export default function CheckInTab({ eventId }) {
 
   const frameColour = !result ? 'border-white' : result.result === 'admitted' ? 'border-green-400' : result.result === 'invalid' || result.result === 'revoked' ? 'border-red-500' : 'border-amber-400'
 
-  const scannerScreen = cameraOn && (
-    <div className="fixed inset-0 z-[60] bg-black text-white select-none">
-      <QrScanner onCode={onCameraCode} fullscreen />
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-        <div className={`relative w-[68vw] max-w-[320px] aspect-square rounded-3xl border-4 ${frameColour} transition-colors shadow-[0_0_0_100vmax_rgba(0,0,0,0.55)]`} />
-      </div>
-      <div className="absolute top-0 inset-x-0 flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))]">
-        <button type="button" onClick={() => { setCameraOn(false); setResult(null); closePanel() }} className="w-11 h-11 rounded-full bg-black/50 flex items-center justify-center text-2xl" aria-label="Close scanner">&times;</button>
-        {stats && <div className="px-4 py-2 rounded-full bg-black/50 text-sm font-semibold">{stats.checkedIn} / {stats.total} in</div>}
-        <div className="w-11" />
-      </div>
-      {!result && !pending && (
-        <p className="absolute inset-x-0 bottom-[max(2.5rem,env(safe-area-inset-bottom))] text-center text-base text-white/90">Point at a ticket QR code</p>
-      )}
-      {result && !pending && (
-        <div className="absolute inset-x-0 bottom-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          {resultCard}
-          <button type="button" onClick={() => setResult(null)} className="mt-3 w-full py-4 rounded-xl bg-white text-black text-lg font-semibold">Scan next</button>
-        </div>
-      )}
-    </div>
-  )
-
   const pendingPanel = pending && (
     <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
           <div className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-6 shadow-xl">
@@ -249,6 +226,29 @@ export default function CheckInTab({ eventId }) {
           )}
           {result.result !== 'admitted' && result.error && <p className="mt-1 text-sm">{result.error}</p>}
         </div>
+  )
+
+  const scannerScreen = cameraOn && (
+    <div className="fixed inset-0 z-[60] bg-black text-white select-none">
+      <QrScanner onCode={onCameraCode} fullscreen />
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+        <div className={`relative w-[68vw] max-w-[320px] aspect-square rounded-3xl border-4 ${frameColour} transition-colors shadow-[0_0_0_100vmax_rgba(0,0,0,0.55)]`} />
+      </div>
+      <div className="absolute top-0 inset-x-0 flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))]">
+        <button type="button" onClick={() => { setCameraOn(false); setResult(null); closePanel() }} className="w-11 h-11 rounded-full bg-black/50 flex items-center justify-center text-2xl" aria-label="Close scanner">&times;</button>
+        {stats && <div className="px-4 py-2 rounded-full bg-black/50 text-sm font-semibold">{stats.checkedIn} / {stats.total} in</div>}
+        <div className="w-11" />
+      </div>
+      {!result && !pending && (
+        <p className="absolute inset-x-0 bottom-[max(2.5rem,env(safe-area-inset-bottom))] text-center text-base text-white/90">Point at a ticket QR code</p>
+      )}
+      {result && !pending && (
+        <div className="absolute inset-x-0 bottom-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          {resultCard}
+          <button type="button" onClick={() => setResult(null)} className="mt-3 w-full py-4 rounded-xl bg-white text-black text-lg font-semibold">Scan next</button>
+        </div>
+      )}
+    </div>
   )
 
   return (
