@@ -14,6 +14,8 @@ export default function DetailsTab({ event, onEventUpdate }) {
     privacyPolicyUrl: event.privacyPolicyUrl || '',
     controllerName: event.controllerName || '',
     controllerEmail: event.controllerEmail || '',
+    controllerCompanyNumber: event.controllerCompanyNumber || '',
+    controllerAddress: event.controllerAddress || '',
     logoUrl: event.logoUrl || '',
   })
 
@@ -32,6 +34,8 @@ export default function DetailsTab({ event, onEventUpdate }) {
         privacyPolicyUrl: formData.privacyPolicyUrl.trim(),
         controllerName: formData.controllerName.trim() || null,
         controllerEmail: formData.controllerEmail.trim() || null,
+        controllerCompanyNumber: formData.controllerCompanyNumber.trim() || null,
+        controllerAddress: formData.controllerAddress.trim() || null,
         logoUrl: formData.logoUrl.trim(),
       }
       if (!updates.name) {
@@ -192,7 +196,18 @@ export default function DetailsTab({ event, onEventUpdate }) {
 
         <div>
           <label className="block text-sm font-semibold text-gray-900 mb-2">Who is responsible for buyer data (name)</label>
-          <input name="controllerName" value={formData.controllerName} onChange={handleChange} placeholder="Foundry Events Limited" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <input name="controllerName" value={formData.controllerName} onChange={handleChange} placeholder="The Foundry Initiative Events Ltd" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Company number</label>
+          <input name="controllerCompanyNumber" value={formData.controllerCompanyNumber} onChange={handleChange} placeholder="17495327" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Registered office address</label>
+          <input name="controllerAddress" value={formData.controllerAddress} onChange={handleChange} placeholder="Unit 8 Laceby Business Park, Laceby, Grimsby, DN37 7DP" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <p className="text-xs text-gray-500 mt-1">Leave blank to use the defaults shown.</p>
         </div>
 
         <div>
