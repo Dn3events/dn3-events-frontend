@@ -45,7 +45,7 @@ export default function PrivacyNotice() {
           <H>Who we are</H>
           <P>
             {controller} (&ldquo;we&rdquo;) is responsible for the personal information you give us when you buy a
-            ticket. We are a company registered in England and Wales (company number {number}) with our registered office at {address}. You can contact us at <a className="text-indigo-600 underline" href={`mailto:${email}`}>{email}</a>.
+            ticket. Our company number is {number} and our registered office is {address}. You can contact us at <a className="text-indigo-600 underline" href={`mailto:${email}`}>{email}</a>.
             Tickets are sold through the DN3 Events ticketing system, which handles your information on our behalf and
             only as we instruct.
           </P>
