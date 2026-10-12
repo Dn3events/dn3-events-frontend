@@ -4,7 +4,9 @@ import { checkouts } from '../api/checkouts'
 
 // DRAFT: wording awaiting the owner's approval (a solicitor check is advisable).
 // The controller name is the one place that identifies who is legally responsible for the data.
-export const DEFAULT_CONTROLLER_NAME = 'Foundry Events Limited'
+export const DEFAULT_CONTROLLER_NAME = 'The Foundry Initiative Events Ltd'
+export const DEFAULT_CONTROLLER_NUMBER = '17495327'
+export const DEFAULT_CONTROLLER_ADDRESS = 'Unit 8 Laceby Business Park, Laceby, Grimsby, North East Lincolnshire, DN37 7DP'
 export const DEFAULT_CONTROLLER_EMAIL = 'dn3events@gmail.com'
 export const RETENTION_MONTHS = 36
 
@@ -18,6 +20,8 @@ export default function PrivacyNotice() {
   }, [slug])
 
   const controller = event?.controllerName || DEFAULT_CONTROLLER_NAME
+  const number = event?.controllerCompanyNumber || DEFAULT_CONTROLLER_NUMBER
+  const address = event?.controllerAddress || DEFAULT_CONTROLLER_ADDRESS
   const email = event?.controllerEmail || DEFAULT_CONTROLLER_EMAIL
   const eventName = event?.name
 
@@ -41,7 +45,7 @@ export default function PrivacyNotice() {
           <H>Who we are</H>
           <P>
             {controller} (&ldquo;we&rdquo;) is responsible for the personal information you give us when you buy a
-            ticket. You can contact us at <a className="text-indigo-600 underline" href={`mailto:${email}`}>{email}</a>.
+            ticket. We are a company registered in England and Wales (company number {number}) with our registered office at {address}. You can contact us at <a className="text-indigo-600 underline" href={`mailto:${email}`}>{email}</a>.
             Tickets are sold through the DN3 Events ticketing system, which handles your information on our behalf and
             only as we instruct.
           </P>
