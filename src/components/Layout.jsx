@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
-import { Home, LogOut, Menu, X } from 'lucide-react'
+import { ExternalLink, Home, LogOut, Menu, X } from 'lucide-react'
 import { useAuthStore } from '../store/useAuthStore'
+
+// Where the operations dashboard lives. Override per deployment with VITE_DASHBOARD_URL.
+const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL || 'https://event-ops-dn3events-projects.vercel.app/'
 
 export default function Layout() {
   const location = useLocation()
@@ -41,6 +44,15 @@ export default function Layout() {
             <Home className="w-5 h-5" />
             <span>Dashboard</span>
           </Link>
+          <a
+            href={DASHBOARD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-2 rounded-lg transition text-gray-300 hover:bg-gray-800"
+          >
+            <ExternalLink className="w-5 h-5" />
+            <span>Operations dashboard</span>
+          </a>
         </nav>
 
         {/* Footer */}

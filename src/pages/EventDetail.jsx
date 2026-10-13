@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { ChevronLeft, MoreVertical, Loader } from 'lucide-react'
 import { useStore } from '../store/useStore'
@@ -22,7 +22,10 @@ export default function EventDetail() {
   const { showToast } = useStore()
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [currentTab, setCurrentTab] = useState(0)
+  const [searchParams] = useSearchParams()
+  // Deep link from the operations dashboard: #/event/<id>?tab=checkin opens the door screen.
+  const linkedTab = TABS.findIndex((t) => t.toLowerCase().replace('-', '') === (searchParams.get('tab') || '').toLowerCase().replace('-', ''))
+  const [currentTab, setCurrentTab] = useState(linkedTab >= 0 ? linkedTab : 0)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [myRole, setMyRole] = useState(null)
 
