@@ -1,6 +1,7 @@
 import { useSearchParams, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Loader, AlertCircle, CheckCircle } from 'lucide-react'
+import QRCode from 'qrcode'
 import { payments } from '../api/payments'
 
 export default function PaymentSuccess() {
@@ -9,6 +10,7 @@ export default function PaymentSuccess() {
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [qrImage, setQrImage] = useState(null)
 
   // The webhook confirms payment, which can land a few seconds after the redirect.
   // Keep checking until the order is paid (or for about a minute).
@@ -35,6 +37,15 @@ export default function PaymentSuccess() {
       if (timer) clearTimeout(timer)
     }
   }, [sessionId])
+
+  // Draw the order QR on screen so entry never depends on the email arriving.
+  useEffect(() => {
+    let live = true
+    if (order?.qrCode) {
+      QRCode.toDataURL(order.qrCode, { width: 320, margin: 2 }).then((u) => { if (live) setQrImage(u) }).catch(() => {})
+    }
+    return () => { live = false }
+  }, [order?.qrCode])
 
   const loadOrder = async () => {
     try {
@@ -153,6 +164,16 @@ export default function PaymentSuccess() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {isPaid && qrImage && (
+            <div className="mb-8 border-t pt-8 text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Your entry QR code</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Show this at the door. One scan admits everyone on this order. Take a screenshot to keep it handy.
+              </p>
+              <img src={qrImage} alt="Entry QR code for your order" className="mx-auto w-64 h-64 border rounded-lg" />
             </div>
           )}
 
