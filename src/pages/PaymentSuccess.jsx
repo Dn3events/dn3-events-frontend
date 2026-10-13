@@ -1,8 +1,9 @@
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Loader, AlertCircle, CheckCircle } from 'lucide-react'
 import QRCode from 'qrcode'
 import { payments } from '../api/payments'
+import SiteHeader from '../components/SiteHeader'
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams()
@@ -95,7 +96,9 @@ export default function PaymentSuccess() {
   const needsHelp = status === 'review' || status === 'expired' || status === 'cancelled'
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:py-12">
+    <>
+    <SiteHeader eventName={order?.event?.name} />
+    <div className="min-h-[calc(100vh-5rem)] bg-gray-50 py-8 px-4 sm:py-12">
       <div className="max-w-2xl mx-auto">
         {/* Header reflects what the server has actually confirmed */}
         <div className="text-center mb-8">
@@ -198,16 +201,8 @@ export default function PaymentSuccess() {
           )}
         </div>
 
-        {/* Actions */}
-        <div className="text-center mt-8">
-          <Link
-            to="/"
-            className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg transition"
-          >
-            Return to Home
-          </Link>
-        </div>
       </div>
     </div>
+    </>
   )
 }
