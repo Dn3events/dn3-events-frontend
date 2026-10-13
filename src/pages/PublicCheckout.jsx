@@ -4,6 +4,7 @@ import { Loader, AlertCircle } from 'lucide-react'
 import { checkouts } from '../api/checkouts'
 import { payments } from '../api/payments'
 import { format, parseISO } from 'date-fns'
+import SiteHeader from '../components/SiteHeader'
 
 export default function PublicCheckout() {
   const { slug } = useParams()
@@ -163,7 +164,9 @@ export default function PublicCheckout() {
   const canBuy = checkout.salesOpen !== false
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:py-12">
+    <>
+    <SiteHeader eventName={checkout.event?.name} />
+    <div className="min-h-[calc(100vh-5rem)] bg-gray-50 py-8 px-4 sm:py-12">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -307,7 +310,7 @@ export default function PublicCheckout() {
               <button
                 type="submit"
                 disabled={processing || totalQuantity === 0 || !quote || !canBuy}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
+                className="w-full bg-[#ff9500] hover:bg-[#e68600] disabled:bg-gray-400 text-[#101310] font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"
               >
                 {processing && <Loader className="w-5 h-5 animate-spin" />}
                 {processing ? 'Processing...' : quote ? (quote.total === 0 ? 'Get tickets (free)' : `Pay Now - ${money(quote.total)}`) : 'Choose tickets'}
@@ -343,5 +346,6 @@ export default function PublicCheckout() {
         </div>
       </div>
     </div>
+    </>
   )
 }
