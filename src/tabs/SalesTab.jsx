@@ -127,7 +127,7 @@ export default function SalesTab({ eventId }) {
 
   return (
     <div>
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Stat label="Paid Orders" value={stats.orders} tone="bg-blue-50" />
         <Stat label="Net Revenue" value={money(stats.revenue)} tone="bg-green-50" />
         <Stat label="Valid Tickets" value={stats.tickets} tone="bg-purple-50" />
@@ -157,7 +157,7 @@ export default function SalesTab({ eventId }) {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[600px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {['Order ID', 'Date', 'Buyer', 'Email', 'Tickets', 'Amount', 'Status', ''].map((h) => (
@@ -196,14 +196,14 @@ export default function SalesTab({ eventId }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 
       <Modal isOpen={!!selected} onClose={closeDetail} title="Order Details" size="lg">
         {selected && (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Order ID</p>
                 <p className="font-mono text-sm text-gray-900 break-all">{selected.id}</p>

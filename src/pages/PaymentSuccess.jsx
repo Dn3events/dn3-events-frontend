@@ -84,7 +84,7 @@ export default function PaymentSuccess() {
   const needsHelp = status === 'review' || status === 'expired' || status === 'cancelled'
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:py-12">
       <div className="max-w-2xl mx-auto">
         {/* Header reflects what the server has actually confirmed */}
         <div className="text-center mb-8">
