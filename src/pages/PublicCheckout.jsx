@@ -313,6 +313,14 @@ export default function PublicCheckout() {
                     </a>
                   )}
                 </p>
+                {/^https?:\/\//i.test(checkout.settings?.termsAndConditions || '') && (
+                  <p className="text-xs text-gray-600">
+                    By buying a ticket you agree to the{' '}
+                    <a href={checkout.settings.termsAndConditions} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">
+                      festival terms and conditions
+                    </a>.
+                  </p>
+                )}
               </div>
 
               {/* Payment Button */}
