@@ -3,6 +3,7 @@ import { Plus, Trash2 } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { discounts as api } from '../api/discounts'
 import ConfirmDialog from './ConfirmDialog'
+import { cleanNumberInput } from '../lib/numberInput'
 
 const errorOf = (err, fallback) => err.response?.data?.error || err.response?.data?.message || fallback
 const EMPTY = { code: '', description: '', type: 'percentage', value: '', maxUses: '' }
@@ -100,8 +101,8 @@ export default function DiscountCodes({ eventId }) {
           <option value="percentage">Percentage</option>
           <option value="fixed">Fixed amount (£)</option>
         </select>
-        <input type="number" step="0.01" min="0" placeholder={form.type === 'percentage' ? '% off' : '£ off'} value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} className="w-28 px-3 py-2 border border-gray-300 rounded-lg" />
-        <input type="number" min="1" placeholder="Max uses" value={form.maxUses} onChange={(e) => setForm({ ...form, maxUses: e.target.value })} className="w-28 px-3 py-2 border border-gray-300 rounded-lg" />
+        <input type="number" step="0.01" min="0" placeholder={form.type === 'percentage' ? '% off' : '£ off'} value={form.value} onChange={(e) => setForm({ ...form, value: cleanNumberInput(e) })} className="w-28 px-3 py-2 border border-gray-300 rounded-lg" />
+        <input type="number" min="1" placeholder="Max uses" value={form.maxUses} onChange={(e) => setForm({ ...form, maxUses: cleanNumberInput(e) })} className="w-28 px-3 py-2 border border-gray-300 rounded-lg" />
         <input placeholder="Description (optional)" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="px-3 py-2 border border-gray-300 rounded-lg" />
         <button disabled={busy} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
           <Plus className="w-4 h-4" /> {editingId ? 'Save' : 'Add code'}

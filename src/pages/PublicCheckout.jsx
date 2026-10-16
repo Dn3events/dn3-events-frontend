@@ -5,6 +5,7 @@ import { checkouts } from '../api/checkouts'
 import { payments } from '../api/payments'
 import { format, parseISO } from 'date-fns'
 import SiteHeader from '../components/SiteHeader'
+import { cleanNumberInput } from '../lib/numberInput'
 
 export default function PublicCheckout() {
   const { slug } = useParams()
@@ -159,7 +160,7 @@ export default function PublicCheckout() {
     return null
   }
 
-  const totalQuantity = Object.values(quantities).reduce((sum, q) => sum + q, 0)
+  const totalQuantity = Object.values(quantities).reduce((sum, q) => sum + (Number(q) || 0), 0)
   const money = (n) => `£${Number(n).toFixed(2)}`
   const canBuy = checkout.salesOpen !== false
 
@@ -211,10 +212,18 @@ export default function PublicCheckout() {
                         min="0"
                         max={Math.min(10, ticket.remaining ?? 10)}
                         disabled={ticket.soldOut || !canBuy}
-                        value={quantities[ticket.id] || 0}
-                        onChange={(e) =>
-                          setQuantities({ ...quantities, [ticket.id]: Math.max(0, parseInt(e.target.value, 10) || 0) })
-                        }
+                        value={quantities[ticket.id] === undefined ? 0 : quantities[ticket.id]}
+                        onChange={(e) => {
+                          const v = cleanNumberInput(e)
+                          if (v === '') {
+                            setQuantities({ ...quantities, [ticket.id]: '' })
+                            return
+                          }
+                          const n = Math.max(0, parseInt(v, 10) || 0)
+                          const canon = String(n)
+                          if (e.target.value !== canon) e.target.value = canon
+                          setQuantities({ ...quantities, [ticket.id]: n })
+                        }}
                         className="w-16 px-3 py-2 border border-gray-300 rounded text-center disabled:bg-gray-100"
                       />
                     </div>

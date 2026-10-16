@@ -5,6 +5,7 @@ import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { tickets as ticketsAPI } from '../api/tickets'
 import DiscountCodes from '../components/DiscountCodes'
+import { cleanNumberInput } from '../lib/numberInput'
 
 // datetime-local wants local wall-clock time, not UTC
 function toLocalInput(iso) {
@@ -79,8 +80,9 @@ export default function TicketsTab({ eventId }) {
   }
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    const { name, value, type } = e.target
+    const v = type === 'number' ? cleanNumberInput(e) : value
+    setFormData((prev) => ({ ...prev, [name]: v }))
   }
 
   const handleSave = async () => {

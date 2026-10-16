@@ -4,6 +4,7 @@ import { Download, Search, Loader } from 'lucide-react'
 import Modal from '../components/Modal'
 import { format, parseISO } from 'date-fns'
 import { orders as ordersAPI } from '../api/orders'
+import { cleanNumberInput } from '../lib/numberInput'
 
 const money = (n) => `£${Number(n || 0).toFixed(2)}`
 const errorOf = (err, fallback) => err.response?.data?.error || err.response?.data?.message || fallback
@@ -315,7 +316,7 @@ export default function SalesTab({ eventId }) {
                     min="0.01"
                     max={refundable}
                     value={refundAmount}
-                    onChange={(e) => setRefundAmount(e.target.value)}
+                    onChange={(e) => setRefundAmount(cleanNumberInput(e))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
                   {refundAmount !== '' && Number(refundAmount) < refundable && refundTicketIds.length === 0 && (
