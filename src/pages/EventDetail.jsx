@@ -9,11 +9,12 @@ import CheckoutTab from '../tabs/CheckoutTab'
 import SalesTab from '../tabs/SalesTab'
 import ReportsTab from '../tabs/ReportsTab'
 import BuyersTab from '../tabs/BuyersTab'
+import CheckInTab from '../tabs/CheckInTab'
 import SettingsTab from '../tabs/SettingsTab'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { events as eventsAPI } from '../api/events'
 
-const TABS = ['Details', 'Tickets', 'Checkout', 'Sales', 'Buyers', 'Reports', 'Settings']
+const TABS = ['Details', 'Tickets', 'Checkout', 'Sales', 'Buyers', 'Reports', 'Check-in', 'Settings']
 
 export default function EventDetail() {
   const { eventId } = useParams()
@@ -58,7 +59,7 @@ export default function EventDetail() {
 
   const handleStatusChange = async (newStatus) => {
     try {
-      await eventsAPI.update(event.id, { status: newStatus })
+      await eventsAPI.updateStatus(event.id, newStatus)
       setEvent({ ...event, status: newStatus })
       showToast(`Event ${newStatus === 'live' ? 'published' : newStatus}`)
     } catch (err) {
@@ -172,7 +173,8 @@ export default function EventDetail() {
           {currentTab === 3 && <SalesTab eventId={event.id} />}
           {currentTab === 4 && <BuyersTab eventId={event.id} />}
           {currentTab === 5 && <ReportsTab eventId={event.id} />}
-          {currentTab === 6 && <SettingsTab eventId={event.id} />}
+          {currentTab === 6 && <CheckInTab eventId={event.id} />}
+          {currentTab === 7 && <SettingsTab eventId={event.id} />}
         </div>
       </div>
 

@@ -1,207 +1,162 @@
+import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
-import { Download } from 'lucide-react'
+import { Download, Loader } from 'lucide-react'
+import { reports } from '../api/reports'
+
+const money = (n) => `£${Number(n || 0).toFixed(2)}`
 
 export default function ReportsTab({ eventId }) {
-  const { orders, tickets, discountCodes, showToast } = useStore()
+  const { showToast } = useStore()
+  const [loading, setLoading] = useState(true)
+  const [summary, setSummary] = useState(null)
+  const [revenue, setRevenue] = useState([])
+  const [ticketRows, setTicketRows] = useState([])
+  const [discountRows, setDiscountRows] = useState([])
 
-  const eventOrders = orders.filter((o) => o.eventId === eventId && o.status === 'paid')
-  const eventTickets = tickets.filter((t) => t.eventId === eventId)
-  const eventDiscounts = discountCodes.filter((d) => d.eventId === eventId)
-
-  const stats = {
-    revenue: eventOrders.reduce((sum, o) => sum + o.total, 0),
-    orders: eventOrders.length,
-    ticketsSold: eventOrders.reduce((sum, o) => sum + o.tickets.reduce((s, t) => s + t.quantity, 0), 0),
-    conversionRate: eventTickets.length > 0 ? '85%' : '0%',
-  }
-
-  // Revenue chart data (simplified)
-  const revenueByWeek = [
-    { week: 'Week 1', revenue: 1200 },
-    { week: 'Week 2', revenue: 1800 },
-    { week: 'Week 3', revenue: 2500 },
-    { week: 'Week 4', revenue: 3100 },
-  ]
-
-  const maxRevenue = Math.max(...revenueByWeek.map((d) => d.revenue))
-
-  // Ticket breakdown
-  const ticketBreakdown = eventTickets.map((ticket) => {
-    const sold = ticket.sold
-    const revenue = sold * ticket.price
-    const percent = eventOrders.reduce((sum, o) => sum + o.tickets.filter((t) => t.ticketId === ticket.id).reduce((s, t) => s + t.quantity, 0), 0)
-    return {
-      name: ticket.name,
-      sold: percent,
-      revenue: eventOrders
-        .reduce((sum, o) => sum + (o.tickets.find((t) => t.ticketId === ticket.id) ? o.tickets.find((t) => t.ticketId === ticket.id).quantity * o.tickets.find((t) => t.ticketId === ticket.id).unitPrice : 0), 0),
-      percent: eventOrders.reduce((sum, o) => sum + o.tickets.filter((t) => t.ticketId === ticket.id).reduce((s, t) => s + t.quantity, 0), 0),
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const [s, r, t, d] = await Promise.all([
+          reports.summary(eventId),
+          reports.revenueOverTime(eventId),
+          reports.tickets(eventId),
+          reports.discounts(eventId),
+        ])
+        if (cancelled) return
+        setSummary(s.data.data)
+        setRevenue(r.data.data)
+        setTicketRows(t.data.data)
+        setDiscountRows(d.data.data)
+      } catch (err) {
+        if (!cancelled) showToast(err.response?.data?.error || 'Failed to load reports', 'error')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
     }
-  }).filter(t => t.percent > 0)
+  }, [eventId, showToast])
 
-  const totalTicketsForBreakdown = ticketBreakdown.reduce((sum, t) => sum + t.percent, 0)
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    )
+  }
+  if (!summary) return <p className="text-gray-600">Reports are not available.</p>
 
-  const handleExportReport = () => {
-    const reportContent = `
-Event Revenue Report
-Event ID: ${eventId}
-Generated: ${new Date().toLocaleDateString()}
+  const maxRevenue = Math.max(1, ...revenue.map((d) => d.revenue))
+  const totalSold = ticketRows.reduce((sum, t) => sum + t.sold, 0)
 
-SUMMARY
-Total Revenue: £${stats.revenue.toFixed(2)}
-Total Orders: ${stats.orders}
-Tickets Sold: ${stats.ticketsSold}
-Conversion Rate: ${stats.conversionRate}
-
-TICKET BREAKDOWN
-${ticketBreakdown.map((t) => `${t.name}: ${t.percent} sold, £${t.revenue.toFixed(2)} revenue (${((t.percent / totalTicketsForBreakdown) * 100).toFixed(1)}%)`).join('\n')}
-
-DISCOUNT USAGE
-${eventDiscounts.map((d) => `${d.code}: ${d.usedCount} uses (max: ${d.maxUses || 'unlimited'})`).join('\n')}
-    `.trim()
-
-    const blob = new Blob([reportContent], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
+  const exportCSV = () => {
+    const lines = [
+      ['Ticket', 'Sold', 'Revenue'],
+      ...ticketRows.map((t) => [t.name, t.sold, Number(t.revenue).toFixed(2)]),
+    ]
+    const csv = lines.map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
     const a = document.createElement('a')
     a.href = url
-    a.download = `report-${eventId}.txt`
+    a.download = `report-${eventId}.csv`
     a.click()
     URL.revokeObjectURL(url)
-    showToast('Report exported')
   }
 
   return (
     <div>
-      {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Total Revenue</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">£{stats.revenue.toFixed(2)}</p>
-        </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Total Orders</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.orders}</p>
-        </div>
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Tickets Sold</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.ticketsSold}</p>
-        </div>
-        <div className="bg-orange-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Conversion Rate</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.conversionRate}</p>
-        </div>
+        <Card tone="bg-blue-50" label="Net revenue" value={money(summary.totalRevenue)} />
+        <Card tone="bg-green-50" label="Paid orders" value={summary.totalOrders} />
+        <Card tone="bg-purple-50" label="Tickets sold" value={summary.totalTicketsSold} />
+        <Card tone="bg-orange-50" label="Checked in" value={`${summary.ticketsCheckedIn} / ${summary.ticketsIssued}`} />
       </div>
+      {summary.totalRefunded > 0 && (
+        <p className="text-sm text-gray-600 -mt-4 mb-8">Revenue is after {money(summary.totalRefunded)} of refunds.</p>
+      )}
 
-      {/* Revenue Chart */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Over Time</h3>
-        <div className="flex items-end justify-around h-64 gap-4">
-          {revenueByWeek.map((data, idx) => (
-            <div key={idx} className="flex flex-col items-center flex-1">
-              <div
-                className="w-full bg-blue-600 rounded-t transition hover:bg-blue-700"
-                style={{ height: `${(data.revenue / maxRevenue) * 100}%` }}
-                title={`£${data.revenue}`}
-              />
-              <p className="text-xs text-gray-600 mt-2">{data.week}</p>
-              <p className="text-sm font-semibold text-gray-900">£{data.revenue}</p>
-            </div>
-          ))}
-        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue by day</h3>
+        {revenue.length === 0 ? (
+          <p className="text-gray-600">No paid orders yet.</p>
+        ) : (
+          <div className="flex items-end gap-2 h-56 overflow-x-auto">
+            {revenue.map((d) => (
+              <div key={d.date} className="flex flex-col items-center justify-end min-w-[48px] flex-1 h-full">
+                <div className="w-full bg-blue-600 rounded-t" style={{ height: `${(d.revenue / maxRevenue) * 80}%` }} title={money(d.revenue)} />
+                <p className="text-[10px] text-gray-600 mt-2">{d.date.slice(5)}</p>
+                <p className="text-xs font-semibold text-gray-900">{money(d.revenue)}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Ticket Breakdown */}
-      {ticketBreakdown.length > 0 && (
+      <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Tickets</h3>
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              {['Ticket type', 'Sold', 'Capacity', 'Revenue', 'Share'].map((h) => (
+                <th key={h} className="px-4 py-3 text-left text-sm font-semibold text-gray-900">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {ticketRows.map((t) => (
+              <tr key={t.id}>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900">{t.name}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">{t.sold}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">{t.available ?? 'Unlimited'}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-gray-900">{money(t.revenue)}</td>
+                <td className="px-4 py-3 text-sm text-gray-600">{totalSold ? `${((t.sold / totalSold) * 100).toFixed(1)}%` : '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {discountRows.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Ticket Breakdown</h3>
-          <div className="overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Ticket Type</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Sold</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Revenue</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Percentage</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {ticketBreakdown.map((ticket, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{ticket.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{ticket.percent}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                      £{ticket.revenue.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full transition"
-                            style={{ width: `${(ticket.percent / totalTicketsForBreakdown) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-gray-600">
-                          {((ticket.percent / totalTicketsForBreakdown) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Discount codes</h3>
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                {['Code', 'Uses', 'Given away'].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left text-sm font-semibold text-gray-900">{h}</th>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {discountRows.map((d) => (
+                <tr key={d.id}>
+                  <td className="px-4 py-3"><code className="bg-gray-100 px-2 py-1 rounded text-sm">{d.code}</code></td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{d.usedCount}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{money(d.totalDiscountAmount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* Discount Usage */}
-      {eventDiscounts.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Discount Code Usage</h3>
-          <div className="overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Code</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Description</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Uses</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Max Uses</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Remaining</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {eventDiscounts.map((discount) => (
-                  <tr key={discount.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
-                      <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
-                        {discount.code}
-                      </code>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{discount.description}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{discount.usedCount}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {discount.maxUses ? discount.maxUses : 'Unlimited'}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      {discount.maxUses ? discount.maxUses - discount.usedCount : 'Unlimited'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Export Button */}
       <div className="flex justify-end">
-        <button
-          onClick={handleExportReport}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
-        >
+        <button onClick={exportCSV} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
           <Download className="w-4 h-4" />
-          Export Report
+          Export CSV
         </button>
       </div>
+    </div>
+  )
+}
+
+function Card({ label, value, tone }) {
+  return (
+    <div className={`${tone} p-4 rounded-lg`}>
+      <p className="text-sm text-gray-600">{label}</p>
+      <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
     </div>
   )
 }

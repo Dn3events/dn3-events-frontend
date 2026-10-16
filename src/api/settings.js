@@ -1,24 +1,10 @@
 import client from './client'
 
 export const settings = {
-  getEventSettings: (eventId) =>
-    client.get(`/events/${eventId}/settings`),
-
-  updateEventSettings: (eventId, data) =>
-    client.patch(`/events/${eventId}/settings`, data),
-
-  listUsers: (eventId) =>
-    client.get(`/events/${eventId}/users`),
-
-  getUser: (userId) =>
-    client.get(`/users/${userId}`),
-
-  addUser: (eventId, data) =>
-    client.post(`/events/${eventId}/users`, data),
-
-  updateUser: (userId, data) =>
-    client.patch(`/users/${userId}`, data),
-
-  deleteUser: (userId) =>
-    client.delete(`/users/${userId}`),
+  get: (eventId) => client.get(`/events/${eventId}/settings`),
+  update: (eventId, data) => client.put(`/events/${eventId}/settings`, data),
+  listUsers: (eventId) => client.get(`/events/${eventId}/settings/users`),
+  addUser: (eventId, data) => client.post(`/events/${eventId}/settings/users`, data),
+  updateUser: (eventId, userId, role) => client.put(`/events/${eventId}/settings/users/${userId}`, { role }),
+  removeUser: (eventId, userId) => client.delete(`/events/${eventId}/settings/users/${userId}`),
 }

@@ -1,26 +1,46 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useStore } from '../store/useStore'
 import { Plus, Trash2 } from 'lucide-react'
 import Modal from '../components/Modal'
+import { settings as settingsAPI } from '../api/settings'
+
+const errorOf = (err, fallback) => err.response?.data?.error || err.response?.data?.message || fallback
 
 export default function SettingsTab({ eventId }) {
-  const { eventSettings, userRoles, updateEventSettings, addUserRole, deleteUserRole, updateUserRole, showToast } = useStore()
+  const { showToast } = useStore()
   const [activeSubTab, setActiveSubTab] = useState('fees')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [formData, setFormData] = useState({})
+  const [canEditFees, setCanEditFees] = useState(true)
+  const [userRoles, setUserRoles] = useState([])
+  const [canSeeTeam, setCanSeeTeam] = useState(true)
+  const [userForm, setUserForm] = useState({ email: '', role: 'viewer' })
 
-  const settings = eventSettings.find((s) => s.eventId === eventId) || { eventId }
-  const [formData, setFormData] = useState({ ...settings })
+  const loadSettings = useCallback(async () => {
+    try {
+      const res = await settingsAPI.get(eventId)
+      setFormData(res.data.data)
+    } catch (err) {
+      showToast(errorOf(err, 'Failed to load settings'), 'error')
+    }
+  }, [eventId, showToast])
+
+  const loadUsers = useCallback(async () => {
+    try {
+      const res = await settingsAPI.listUsers(eventId)
+      setUserRoles(res.data.data)
+      setCanSeeTeam(true)
+    } catch (err) {
+      // Viewers cannot see the team list.
+      if (err.response?.status === 403) setCanSeeTeam(false)
+      else showToast(errorOf(err, 'Failed to load team'), 'error')
+    }
+  }, [eventId, showToast])
 
   useEffect(() => {
-    const newSettings = eventSettings.find((s) => s.eventId === eventId) || { eventId }
-    setFormData({ ...newSettings })
-  }, [eventId, eventSettings])
-
-  const [userForm, setUserForm] = useState({
-    name: '',
-    email: '',
-    role: 'viewer',
-  })
+    loadSettings()
+    loadUsers()
+  }, [loadSettings, loadUsers])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -30,13 +50,30 @@ export default function SettingsTab({ eventId }) {
     }))
   }
 
-  const handleSaveSettings = () => {
-    updateEventSettings(eventId, formData)
-    showToast('Settings saved')
+  const handleSaveSettings = async () => {
+    try {
+      const body = {
+        feeFixed: Number(formData.feeFixed),
+        feePercent: Number(formData.feePercent),
+        feesPassedOn: !!formData.feesPassedOn,
+        vatRegistered: !!formData.vatRegistered,
+        facebookPixel: formData.facebookPixel || '',
+        termsAndConditions: formData.termsAndConditions || '',
+        preCheckoutMessage: formData.preCheckoutMessage || '',
+        postCheckoutMessage: formData.postCheckoutMessage || '',
+        ...(formData.supportEmail && { supportEmail: formData.supportEmail }),
+      }
+      const res = await settingsAPI.update(eventId, body)
+      setFormData(res.data.data)
+      showToast('Settings saved')
+    } catch (err) {
+      if (err.response?.status === 403) setCanEditFees(false)
+      showToast(errorOf(err, 'Failed to save settings'), 'error')
+    }
   }
 
   const handleOpenUserModal = () => {
-    setUserForm({ name: '', email: '', role: 'viewer' })
+    setUserForm({ email: '', role: 'viewer' })
     setIsModalOpen(true)
   }
 
@@ -45,31 +82,46 @@ export default function SettingsTab({ eventId }) {
     setUserForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleAddUser = () => {
-    if (!userForm.name.trim() || !userForm.email.trim()) {
-      showToast('Please fill in all fields', 'error')
+  const handleAddUser = async () => {
+    if (!userForm.email.trim()) {
+      showToast('Enter the email they signed up with', 'error')
       return
     }
-
-    addUserRole({
-      name: userForm.name,
-      email: userForm.email,
-      role: userForm.role,
-    })
-
-    setIsModalOpen(false)
-    showToast('User added')
+    try {
+      await settingsAPI.addUser(eventId, { email: userForm.email.trim(), role: userForm.role })
+      setIsModalOpen(false)
+      showToast('User added')
+      loadUsers()
+    } catch (err) {
+      showToast(errorOf(err, 'Failed to add user'), 'error')
+    }
   }
 
-  const handleDeleteUser = (userId) => {
-    deleteUserRole(userId)
-    showToast('User removed')
+  const handleChangeRole = async (userId, role) => {
+    try {
+      await settingsAPI.updateUser(eventId, userId, role)
+      showToast('Role updated')
+    } catch (err) {
+      showToast(errorOf(err, 'Failed to change role'), 'error')
+    }
+    loadUsers()
+  }
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      await settingsAPI.removeUser(eventId, userId)
+      showToast('User removed')
+    } catch (err) {
+      showToast(errorOf(err, 'Failed to remove user'), 'error')
+    }
+    loadUsers()
   }
 
   const roleDescriptions = {
     owner: 'Full access, including fees and team',
     manager: 'Edit event, tickets, discounts, guests; view orders and reports',
     viewer: 'View-only access to the event, orders and reports',
+    scanner: 'Door staff: check tickets in and nothing else',
   }
 
   return (
@@ -297,9 +349,16 @@ export default function SettingsTab({ eventId }) {
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{user.name}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-                          {user.role.replace(/_/g, ' ').toUpperCase()}
-                        </span>
+                        <select
+                          value={user.role}
+                          onChange={(ev) => handleChangeRole(user.id, ev.target.value)}
+                          className="px-2 py-1 border border-gray-300 rounded text-sm"
+                        >
+                          <option value="owner">Owner</option>
+                          <option value="manager">Manager</option>
+                          <option value="viewer">Viewer</option>
+                          <option value="scanner">Scanner</option>
+                        </select>
                       </td>
                       <td className="px-6 py-4 text-xs text-gray-600">
                         {roleDescriptions[user.role] || 'Custom role'}
@@ -326,20 +385,10 @@ export default function SettingsTab({ eventId }) {
             size="md"
           >
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={userForm.name}
-                  onChange={handleUserChange}
-                  placeholder="Full name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+              <p className="text-sm text-gray-600">They need an account first. Ask them to register, then enter the email they used.</p>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Email</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Email they registered with</label>
                 <input
                   type="email"
                   name="email"
@@ -359,6 +408,7 @@ export default function SettingsTab({ eventId }) {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="viewer">Viewer</option>
+                  <option value="scanner">Scanner (door staff)</option>
                   <option value="manager">Manager</option>
                   <option value="owner">Owner</option>
                 </select>
