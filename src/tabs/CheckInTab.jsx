@@ -10,6 +10,7 @@ const RESULT_STYLE = {
   admitted: 'bg-green-50 border-green-300 text-green-900',
   duplicate: 'bg-amber-50 border-amber-300 text-amber-900',
   insufficient: 'bg-amber-50 border-amber-300 text-amber-900',
+  not_valid_today: 'bg-red-50 border-red-300 text-red-900',
   revoked: 'bg-red-50 border-red-300 text-red-900',
   invalid: 'bg-red-50 border-red-300 text-red-900',
 }
@@ -17,6 +18,7 @@ const RESULT_STYLE = {
 const RESULT_TITLE = {
   admitted: 'ADMIT',
   duplicate: 'ALREADY CHECKED IN',
+  not_valid_today: 'NOT VALID TODAY',
   revoked: 'TICKET CANCELLED',
   invalid: 'NOT RECOGNISED',
 }
