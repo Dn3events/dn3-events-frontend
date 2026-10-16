@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Upload, Check } from 'lucide-react'
+import { ChevronRight, Check } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { events as eventsAPI } from '../api/events'
 
@@ -36,32 +36,9 @@ export default function CreateEvent() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleLogoUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setLogo(event.target.result)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const handleDragDrop = (e) => {
-    e.preventDefault()
-    const file = e.dataTransfer.files[0]
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setLogo(event.target.result)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
   const isStep0Valid = formData.name.trim() && formData.description.trim() && formData.websiteUrl.trim()
   const isStep1Valid = formData.line1.trim() && formData.city.trim() && formData.postcode.trim()
-  const isStep2Valid = formData.startDate && formData.startTime && formData.endDate && formData.endTime && formData.salesOpenDate && formData.salesCloseDate
+  const isStep2Valid = new Date(`${formData.endDate}T${formData.endTime || '00:00'}`) >= new Date(`${formData.startDate}T${formData.startTime || '00:00'}`) && formData.startDate && formData.startTime && formData.endDate && formData.endTime && formData.salesOpenDate && formData.salesCloseDate
 
   const canProceed = [isStep0Valid, isStep1Valid, isStep2Valid, true][currentStep]
 
@@ -89,6 +66,7 @@ export default function CreateEvent() {
       name: formData.name,
       description: formData.description,
       websiteUrl: formData.websiteUrl,
+      ...(logo?.trim() && { logoUrl: logo.trim() }),
       addressLine1: formData.line1,
       addressLine2: formData.line2,
       city: formData.city,
@@ -183,34 +161,15 @@ export default function CreateEvent() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Event Logo</label>
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDragDrop}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition cursor-pointer"
-              >
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                  id="logo-upload"
-                />
-                <label htmlFor="logo-upload" className="cursor-pointer block">
-                  {logo ? (
-                    <div>
-                      <img src={logo} alt="Logo preview" className="w-32 h-32 mx-auto mb-4 object-cover rounded" />
-                      <p className="text-sm text-blue-600">Click to change</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Drag and drop your logo here</p>
-                      <p className="text-xs text-gray-400 mt-1">or click to select</p>
-                    </div>
-                  )}
-                </label>
-              </div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">Event logo link (optional)</label>
+              <input
+                type="url"
+                placeholder="https://..."
+                value={logo || ''}
+                onChange={(e) => setLogo(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {logo && <img src={logo} alt="Logo preview" className="mt-3 w-24 h-24 object-cover rounded" />}
             </div>
           </div>
         )}

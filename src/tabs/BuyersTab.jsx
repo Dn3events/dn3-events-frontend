@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useStore } from '../store/useStore'
-import { Plus, Upload } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import CompGuests from '../components/CompGuests'
 import Modal from '../components/Modal'
 import { orders as ordersAPI } from '../api/orders'
 import { questions as questionsAPI } from '../api/questions'
@@ -139,7 +140,15 @@ export default function BuyersTab({ eventId }) {
               : 'text-gray-600 hover:text-gray-900'
           }`}
         >
-          Guest List ({guests.length})
+          Buyers ({guests.length})
+        </button>
+        <button
+          onClick={() => setActiveSubTab('comps')}
+          className={`font-medium transition ${
+            activeSubTab === 'comps' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Complimentary guests
         </button>
         <button
           onClick={() => setActiveSubTab('questions')}
@@ -158,10 +167,6 @@ export default function BuyersTab({ eventId }) {
         <div>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Guests</h3>
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
-              <Upload className="w-4 h-4" />
-              Upload CSV
-            </button>
           </div>
 
           {guests.length === 0 ? (
@@ -198,6 +203,8 @@ export default function BuyersTab({ eventId }) {
           )}
         </div>
       )}
+
+      {activeSubTab === 'comps' && <CompGuests eventId={eventId} />}
 
       {/* Questions Tab */}
       {activeSubTab === 'questions' && (

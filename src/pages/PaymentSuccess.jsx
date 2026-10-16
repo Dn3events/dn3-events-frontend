@@ -91,8 +91,8 @@ export default function PaymentSuccess() {
           {isPaid && (
             <>
               <CheckCircle className="w-20 h-20 text-green-600 mx-auto mb-4" />
-              <h1 className="text-3xl font-bold text-gray-900">Payment Successful!</h1>
-              <p className="text-gray-600 mt-2">Thank you for your purchase</p>
+              <h1 className="text-3xl font-bold text-gray-900">{order.total === 0 ? 'You are booked in!' : 'Payment Successful!'}</h1>
+              <p className="text-gray-600 mt-2">{order.total === 0 ? 'Your free tickets are confirmed' : 'Thank you for your purchase'}</p>
             </>
           )}
           {!isPaid && !needsHelp && (
@@ -128,7 +128,7 @@ export default function PaymentSuccess() {
                   <span className="font-semibold text-gray-900">{order.buyerEmail}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between text-base font-bold">
-                  <span>{isPaid ? 'Total Paid' : 'Total'}</span>
+                  <span>{order.total === 0 ? 'Total (free)' : isPaid ? 'Total Paid' : 'Total'}</span>
                   <span>£{order.total.toFixed(2)}</span>
                 </div>
               </div>
@@ -172,7 +172,7 @@ export default function PaymentSuccess() {
           {isPaid && (order?.emailStatus === 'failed' || order?.emailStatus === 'skipped') && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
               <p className="font-semibold">We could not email your tickets yet</p>
-              <p className="mt-1">Your payment is confirmed. Contact the organiser with your order ID and they will send them to you.</p>
+              <p className="mt-1">{order.total === 0 ? 'Your booking is confirmed.' : 'Your payment is confirmed.'} Contact the organiser with your order ID and they will send them to you.</p>
             </div>
           )}
         </div>
