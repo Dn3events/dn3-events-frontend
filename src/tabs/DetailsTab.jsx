@@ -11,6 +11,11 @@ export default function DetailsTab({ event, onEventUpdate }) {
     name: event.name || '',
     description: (event.description || '').replace(/<[^>]*>/g, ''),
     websiteUrl: event.websiteUrl || '',
+    privacyPolicyUrl: event.privacyPolicyUrl || '',
+    controllerName: event.controllerName || '',
+    controllerEmail: event.controllerEmail || '',
+    controllerCompanyNumber: event.controllerCompanyNumber || '',
+    controllerAddress: event.controllerAddress || '',
     logoUrl: event.logoUrl || '',
   })
 
@@ -26,6 +31,11 @@ export default function DetailsTab({ event, onEventUpdate }) {
         name: formData.name.trim(),
         description: formData.description,
         websiteUrl: formData.websiteUrl.trim(),
+        privacyPolicyUrl: formData.privacyPolicyUrl.trim(),
+        controllerName: formData.controllerName.trim() || null,
+        controllerEmail: formData.controllerEmail.trim() || null,
+        controllerCompanyNumber: formData.controllerCompanyNumber.trim() || null,
+        controllerAddress: formData.controllerAddress.trim() || null,
         logoUrl: formData.logoUrl.trim(),
       }
       if (!updates.name) {
@@ -66,6 +76,17 @@ export default function DetailsTab({ event, onEventUpdate }) {
             <div className="mb-8">
               <p className="text-sm text-gray-600 mb-2">Description</p>
               <p className="text-gray-700">{(event.description || '').replace(/<[^>]*>/g, '')}</p>
+            </div>
+
+            <div className="mb-8">
+              <p className="text-sm text-gray-600 mb-2">Privacy notice</p>
+              {/^https?:\/\//i.test(event.privacyPolicyUrl || '') ? (
+                <a href={event.privacyPolicyUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+                  {event.privacyPolicyUrl}
+                </a>
+              ) : (
+                <p className="text-gray-600">Not set. Add one before selling tickets.</p>
+              )}
             </div>
 
             <div className="mb-8">
@@ -158,6 +179,41 @@ export default function DetailsTab({ event, onEventUpdate }) {
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Privacy notice link</label>
+          <input
+            type="url"
+            name="privacyPolicyUrl"
+            value={formData.privacyPolicyUrl}
+            onChange={handleChange}
+            placeholder="https://..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <p className="text-xs text-gray-500 mt-1">Leave blank to use the built-in privacy notice.</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Who is responsible for buyer data (name)</label>
+          <input name="controllerName" value={formData.controllerName} onChange={handleChange} placeholder="The Foundry Initiative Events Ltd" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Company number</label>
+          <input name="controllerCompanyNumber" value={formData.controllerCompanyNumber} onChange={handleChange} placeholder="17495327" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Registered office address</label>
+          <input name="controllerAddress" value={formData.controllerAddress} onChange={handleChange} placeholder="Unit 8 Laceby Business Park, Laceby, Grimsby, DN37 7DP" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <p className="text-xs text-gray-500 mt-1">Leave blank to use the defaults shown.</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Privacy contact email</label>
+          <input type="email" name="controllerEmail" value={formData.controllerEmail} onChange={handleChange} placeholder="dn3events@gmail.com" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <p className="text-xs text-gray-500 mt-1">Shown on the privacy notice.</p>
         </div>
 
         <div>

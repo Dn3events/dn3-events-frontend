@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore'
 import { Plus } from 'lucide-react'
 import CompGuests from '../components/CompGuests'
 import Modal from '../components/Modal'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { orders as ordersAPI } from '../api/orders'
 import { questions as questionsAPI } from '../api/questions'
 
@@ -39,6 +40,50 @@ export default function BuyersTab({ eventId }) {
   })
 
   const eventOrders = orders.filter((o) => o.status === 'paid')
+  const [eraseTarget, setEraseTarget] = useState(null)
+
+  const downloadCsv = async (marketingOnly) => {
+    try {
+      const res = await ordersAPI.exportCSV(eventId, { marketingOnly })
+      const url = URL.createObjectURL(res.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = marketingOnly ? 'marketing-list.csv' : 'buyers.csv'
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      showToast(errorOf(err, 'Export failed'), 'error')
+    }
+  }
+
+  const downloadBuyerData = async (email) => {
+    try {
+      const res = await ordersAPI.subjectData(eventId, email)
+      const blob = new Blob([JSON.stringify(res.data.data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'data-held-' + email.replace(/[^a-z0-9]+/gi, '-') + '.json'
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      showToast(errorOf(err, 'Only the event owner can download buyer data'), 'error')
+    }
+  }
+
+  const eraseBuyer = async () => {
+    const target = eraseTarget
+    setEraseTarget(null)
+    try {
+      for (const o of eventOrders.filter((x) => x.buyerEmail === target.email)) {
+        await ordersAPI.anonymise(eventId, o.id)
+      }
+      showToast('Buyer data erased', 'success')
+      load()
+    } catch (err) {
+      showToast(errorOf(err, 'Only the event owner can erase buyer data'), 'error')
+    }
+  }
 
   // Build unique guests from orders
   const guests = []
@@ -50,6 +95,7 @@ export default function BuyersTab({ eventId }) {
         name: order.buyerName,
         email: order.buyerEmail,
         postcode: order.buyerPostcode,
+        marketing: eventOrders.some((o) => o.buyerEmail === order.buyerEmail && o.marketingConsent),
         ticketCount: eventOrders
           .filter((o) => o.buyerEmail === order.buyerEmail)
           .reduce((sum, o) => sum + o.items.reduce((n, i) => n + i.quantity, 0), 0),
@@ -167,7 +213,20 @@ export default function BuyersTab({ eventId }) {
         <div>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Guests</h3>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => downloadCsv(false)} className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Export all buyers (CSV)</button>
+              <button onClick={() => downloadCsv(true)} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Export marketing list (CSV)</button>
+            </div>
           </div>
+          <ConfirmDialog
+            isOpen={!!eraseTarget}
+            isDangerous
+            title="Erase this buyer's data?"
+            message="Their name, email, postcode and answers are removed from every order. Payment totals and tickets stay for your accounts. This cannot be undone."
+            confirmText="Erase"
+            onConfirm={eraseBuyer}
+            onCancel={() => setEraseTarget(null)}
+          />
 
           {guests.length === 0 ? (
             <div className="bg-white rounded-lg shadow p-12 text-center">
@@ -183,6 +242,8 @@ export default function BuyersTab({ eventId }) {
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Postcode</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Tickets Purchased</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">First Purchase</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Marketing OK</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -194,6 +255,11 @@ export default function BuyersTab({ eventId }) {
                       <td className="px-6 py-4 text-sm text-gray-900">{guest.ticketCount}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {format(parseISO(guest.createdAt), 'MMM d, yyyy')}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{guest.marketing ? 'Yes' : 'No'}</td>
+                      <td className="px-6 py-4 text-sm">
+                        <button onClick={() => downloadBuyerData(guest.email)} className="text-indigo-600 hover:underline mr-3">Download data</button>
+                        <button onClick={() => setEraseTarget(guest)} className="text-red-600 hover:underline">Erase</button>
                       </td>
                     </tr>
                   ))}

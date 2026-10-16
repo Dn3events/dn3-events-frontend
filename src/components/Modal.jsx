@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }) {
@@ -11,7 +12,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
     '2xl': 'max-w-2xl',
   }
 
-  return (
+  // Rendered on the page body so a transformed parent (the mobile sidebar) cannot squash or clip it.
+  return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className={`bg-white rounded-lg shadow-xl ${sizeClasses[size]} max-h-[90vh] overflow-auto`}>
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -27,6 +29,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

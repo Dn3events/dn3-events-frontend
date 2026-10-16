@@ -4,6 +4,7 @@ import { Loader, AlertCircle } from 'lucide-react'
 import { checkouts } from '../api/checkouts'
 import { payments } from '../api/payments'
 import { format, parseISO } from 'date-fns'
+import SiteHeader from '../components/SiteHeader'
 
 export default function PublicCheckout() {
   const { slug } = useParams()
@@ -17,6 +18,7 @@ export default function PublicCheckout() {
   const [buyerName, setBuyerName] = useState('')
   const [buyerEmail, setBuyerEmail] = useState('')
   const [buyerPostcode, setBuyerPostcode] = useState('')
+  const [marketingConsent, setMarketingConsent] = useState(false)
   const [discountCode, setDiscountCode] = useState('')
   const [appliedCode, setAppliedCode] = useState(null)
   const [discountError, setDiscountError] = useState('')
@@ -111,6 +113,7 @@ export default function PublicCheckout() {
         buyerName,
         buyerEmail,
         buyerPostcode,
+        marketingConsent,
         discountCode: appliedCode,
       })
 
@@ -161,7 +164,9 @@ export default function PublicCheckout() {
   const canBuy = checkout.salesOpen !== false
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:py-12">
+    <>
+    <SiteHeader eventName={checkout.event?.name} />
+    <div className="min-h-[calc(100vh-5rem)] bg-gray-50 py-8 px-4 sm:py-12">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -273,11 +278,39 @@ export default function PublicCheckout() {
                 )}
               </div>
 
+              {/* Consent and privacy: marketing is opt-in and never pre-ticked */}
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6 space-y-3">
+                <label className="flex items-start gap-3 text-sm text-gray-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={marketingConsent}
+                    onChange={(e) => setMarketingConsent(e.target.checked)}
+                    className="mt-1 h-4 w-4 shrink-0"
+                  />
+                  <span>
+                    Yes, keep me posted by email about {checkout.event?.name} and future events. You can unsubscribe at any time.
+                    This is optional and does not affect your ticket.
+                  </span>
+                </label>
+                <p className="text-xs text-gray-600">
+                  We use your name, email and postcode to issue and deliver your tickets and to run the event.{' '}
+                  {/^https?:\/\//i.test(checkout.event?.privacyPolicyUrl || '') ? (
+                    <a href={checkout.event.privacyPolicyUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">
+                      Read our privacy notice
+                    </a>
+                  ) : (
+                    <a href={`#/privacy/${slug}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">
+                      Read our privacy notice
+                    </a>
+                  )}
+                </p>
+              </div>
+
               {/* Payment Button */}
               <button
                 type="submit"
                 disabled={processing || totalQuantity === 0 || !quote || !canBuy}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
+                className="w-full bg-[#ff9500] hover:bg-[#e68600] disabled:bg-gray-400 text-[#101310] font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"
               >
                 {processing && <Loader className="w-5 h-5 animate-spin" />}
                 {processing ? 'Processing...' : quote ? (quote.total === 0 ? 'Get tickets (free)' : `Pay Now - ${money(quote.total)}`) : 'Choose tickets'}
@@ -313,5 +346,6 @@ export default function PublicCheckout() {
         </div>
       </div>
     </div>
+    </>
   )
 }

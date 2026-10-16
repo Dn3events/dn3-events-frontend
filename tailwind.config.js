@@ -7,7 +7,10 @@ export default {
     extend: {
       colors: {
         primary: "#3b82f6",
-        sidebar: "#1e2140",
+        sidebar: "#0b0b0b",
+        brand: "#FF9500",
+        ink: "#050505",
+        paper: "#F6F5F1",
         bg: "#f5f5f5",
       },
     },
