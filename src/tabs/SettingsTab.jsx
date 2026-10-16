@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore'
 import { Plus, Trash2 } from 'lucide-react'
 import Modal from '../components/Modal'
 import { settings as settingsAPI } from '../api/settings'
+import { cleanNumberInput } from '../lib/numberInput'
 
 const errorOf = (err, fallback) => err.response?.data?.error || err.response?.data?.message || fallback
 
@@ -44,9 +45,10 @@ export default function SettingsTab({ eventId }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
+    const cleaned = type === 'number' ? cleanNumberInput(e) : value
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === 'checkbox' ? checked : cleaned,
     }))
   }
 
