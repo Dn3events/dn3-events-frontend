@@ -29,7 +29,8 @@ client.interceptors.response.use(
       // Clear token and redirect to login
       localStorage.removeItem('authToken')
       localStorage.removeItem('authUser')
-      window.location.href = '/login'
+      // The app uses hash routing
+      window.location.hash = '#/login'
     }
     return Promise.reject(error)
   }

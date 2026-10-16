@@ -1,9 +1,8 @@
 import { useParams } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Loader, AlertCircle } from 'lucide-react'
 import { checkouts } from '../api/checkouts'
 import { payments } from '../api/payments'
-import { discounts } from '../api/discounts'
 import { format, parseISO } from 'date-fns'
 
 export default function PublicCheckout() {
@@ -19,8 +18,12 @@ export default function PublicCheckout() {
   const [buyerEmail, setBuyerEmail] = useState('')
   const [buyerPostcode, setBuyerPostcode] = useState('')
   const [discountCode, setDiscountCode] = useState('')
-  const [appliedDiscount, setAppliedDiscount] = useState(null)
+  const [appliedCode, setAppliedCode] = useState(null)
   const [discountError, setDiscountError] = useState('')
+  const [quote, setQuote] = useState(null)
+  const [quoteError, setQuoteError] = useState('')
+
+  const apiError = (err, fallback) => err.response?.data?.error || err.response?.data?.message || fallback
 
   useEffect(() => {
     loadCheckout()
@@ -32,84 +35,91 @@ export default function PublicCheckout() {
       const response = await checkouts.getBySlug(slug)
       setCheckout(response.data.data)
 
-      // Initialize quantities
+      // Nothing is pre-selected: the buyer chooses what they want.
       const initialQties = {}
       if (response.data.data.tickets) {
         response.data.data.tickets.forEach((ticket) => {
-          initialQties[ticket.id] = 1
+          initialQties[ticket.id] = 0
         })
       }
       setQuantities(initialQties)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load checkout')
+      setError(apiError(err, 'Failed to load checkout'))
     } finally {
       setLoading(false)
     }
   }
 
-  const handleApplyDiscount = async () => {
-    if (!discountCode.trim()) return
+  const selectedItems = useMemo(
+    () =>
+      Object.entries(quantities)
+        .filter(([, qty]) => qty > 0)
+        .map(([ticketId, quantity]) => ({ ticketId, quantity })),
+    [quantities]
+  )
 
-    try {
-      setDiscountError('')
-      const response = await discounts.validate(discountCode, checkout.eventId)
-      setAppliedDiscount(response.data.data)
-    } catch (err) {
-      setDiscountError(err.response?.data?.message || 'Invalid discount code')
-      setAppliedDiscount(null)
+  // Ask the server for the price whenever the basket or code changes.
+  useEffect(() => {
+    if (!checkout || selectedItems.length === 0) {
+      setQuote(null)
+      setQuoteError('')
+      return undefined
     }
-  }
-
-  const calculateTotal = () => {
-    let subtotal = 0
-    if (checkout?.tickets) {
-      checkout.tickets.forEach((ticket) => {
-        const qty = quantities[ticket.id] || 0
-        subtotal += parseFloat(ticket.price) * qty
-      })
+    let cancelled = false
+    const timer = setTimeout(async () => {
+      try {
+        const response = await checkouts.quote(slug, { items: selectedItems, discountCode: appliedCode })
+        if (!cancelled) {
+          setQuote(response.data.data)
+          setQuoteError('')
+          setDiscountError('')
+        }
+      } catch (err) {
+        if (cancelled) return
+        setQuote(null)
+        if (err.response?.data?.code === 'invalid_discount') {
+          setDiscountError(apiError(err, 'Invalid discount code'))
+          setAppliedCode(null)
+        } else {
+          setQuoteError(apiError(err, 'Could not work out the price'))
+        }
+      }
+    }, 250)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
     }
+  }, [checkout, selectedItems, appliedCode, slug])
 
-    const fees = subtotal * (checkout?.event?.feePercent || 0.035) / 100 + (checkout?.event?.feeFixed || 0.75)
-    let total = subtotal + fees
-
-    if (appliedDiscount) {
-      const discountAmount = appliedDiscount.type === 'percentage'
-        ? total * (appliedDiscount.value / 100)
-        : appliedDiscount.value
-      total -= discountAmount
-    }
-
-    return { subtotal, fees, total, discount: appliedDiscount }
+  const handleApplyDiscount = () => {
+    const code = discountCode.trim()
+    if (!code) return
+    setDiscountError('')
+    setAppliedCode(code)
   }
 
   const handlePayment = async (e) => {
     e.preventDefault()
     setProcessing(true)
+    setQuoteError('')
 
     try {
-      const totals = calculateTotal()
-      const items = checkout.tickets
-        .filter((t) => quantities[t.id] > 0)
-        .map((t) => ({
-          ticketId: t.id,
-          quantity: quantities[t.id],
-          price: t.price,
-        }))
-
+      // Only ticket ids and quantities are sent. Prices, fees and totals are worked out by the server.
       const response = await payments.createCheckoutSession({
         checkoutId: checkout.id,
-        items,
+        items: selectedItems,
         buyerName,
         buyerEmail,
         buyerPostcode,
-        discountCode: appliedDiscount?.code || null,
-        total: totals.total,
+        discountCode: appliedCode,
       })
 
       // Redirect to Stripe
       window.location.href = response.data.data.url
     } catch (err) {
-      setError(err.response?.data?.message || 'Payment processing failed')
+      setQuoteError(apiError(err, 'Payment processing failed'))
+      // Stock may have changed: refresh what is on sale.
+      loadCheckout()
     } finally {
       setProcessing(false)
     }
@@ -146,8 +156,9 @@ export default function PublicCheckout() {
     return null
   }
 
-  const totals = calculateTotal()
   const totalQuantity = Object.values(quantities).reduce((sum, q) => sum + q, 0)
+  const money = (n) => `£${Number(n).toFixed(2)}`
+  const canBuy = checkout.salesOpen !== false
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -162,6 +173,12 @@ export default function PublicCheckout() {
           )}
         </div>
 
+        {!canBuy && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-amber-800 text-sm">
+            {checkout.salesClosedReason || 'Ticket sales are not open right now.'}
+          </div>
+        )}
+
         {/* Main Form */}
         <div className="grid gap-8 md:grid-cols-3">
           {/* Form Section */}
@@ -175,16 +192,19 @@ export default function PublicCheckout() {
                     <div key={ticket.id} className="flex items-center justify-between p-3 border border-gray-200 rounded">
                       <div>
                         <h3 className="font-semibold text-gray-900">{ticket.name}</h3>
-                        <p className="text-sm text-gray-600">£{parseFloat(ticket.price).toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">{money(ticket.price)}</p>
+                        {ticket.soldOut && <p className="text-sm font-semibold text-red-600">Sold out</p>}
                       </div>
                       <input
                         type="number"
                         min="0"
+                        max={Math.min(10, ticket.remaining ?? 10)}
+                        disabled={ticket.soldOut || !canBuy}
                         value={quantities[ticket.id] || 0}
                         onChange={(e) =>
-                          setQuantities({ ...quantities, [ticket.id]: parseInt(e.target.value) || 0 })
+                          setQuantities({ ...quantities, [ticket.id]: Math.max(0, parseInt(e.target.value, 10) || 0) })
                         }
-                        className="w-16 px-3 py-2 border border-gray-300 rounded text-center"
+                        className="w-16 px-3 py-2 border border-gray-300 rounded text-center disabled:bg-gray-100"
                       />
                     </div>
                   ))}
@@ -242,22 +262,21 @@ export default function PublicCheckout() {
                   </button>
                 </div>
                 {discountError && <p className="text-red-600 text-sm mt-2">{discountError}</p>}
-                {appliedDiscount && (
-                  <p className="text-green-600 text-sm mt-2">
-                    Discount applied: {appliedDiscount.type === 'percentage' ? `${appliedDiscount.value}%` : `£${appliedDiscount.value.toFixed(2)}`}
-                  </p>
+                {appliedCode && quote && quote.discount > 0 && (
+                  <p className="text-green-600 text-sm mt-2">Discount applied: -{money(quote.discount)}</p>
                 )}
               </div>
 
               {/* Payment Button */}
               <button
                 type="submit"
-                disabled={processing || totalQuantity === 0}
+                disabled={processing || totalQuantity === 0 || !quote || !canBuy}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
               >
                 {processing && <Loader className="w-5 h-5 animate-spin" />}
-                {processing ? 'Processing...' : `Pay Now - £${totals.total.toFixed(2)}`}
+                {processing ? 'Processing...' : quote ? `Pay Now - ${money(quote.total)}` : 'Choose tickets'}
               </button>
+              {quoteError && <p className="text-red-600 text-sm">{quoteError}</p>}
             </form>
           </div>
 
@@ -267,21 +286,21 @@ export default function PublicCheckout() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="font-semibold">£{totals.subtotal.toFixed(2)}</span>
+                <span className="font-semibold">{quote ? money(quote.subtotal) : '-'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Fees</span>
-                <span className="font-semibold">£{totals.fees.toFixed(2)}</span>
+                <span className="font-semibold">{quote ? money(quote.fees) : '-'}</span>
               </div>
-              {totals.discount && (
+              {quote && quote.discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount</span>
-                  <span>-£{(totals.subtotal + totals.fees - totals.total).toFixed(2)}</span>
+                  <span>-{money(quote.discount)}</span>
                 </div>
               )}
               <div className="border-t pt-3 flex justify-between text-base font-bold">
                 <span>Total</span>
-                <span>£{totals.total.toFixed(2)}</span>
+                <span>{quote ? money(quote.total) : '-'}</span>
               </div>
             </div>
           </div>
