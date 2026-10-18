@@ -3,11 +3,16 @@ import { useState, useEffect } from 'react'
 import { Loader, AlertCircle, CheckCircle } from 'lucide-react'
 import QRCode from 'qrcode'
 import { payments } from '../api/payments'
+import AdvertisingConsent from '../components/AdvertisingConsent'
 import SiteHeader from '../components/SiteHeader'
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams()
-  const sessionId = searchParams.get('session_id')
+  const [sessionId] = useState(() => {
+    const ref = searchParams.get('session_id')
+    if (ref) { try { sessionStorage.setItem('dn3-payment-return', ref) } catch { /* still render */ } }
+    try { return ref || sessionStorage.getItem('dn3-payment-return') } catch { return ref }
+  })
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -53,6 +58,10 @@ export default function PaymentSuccess() {
       setLoading(true)
       const response = await payments.getSuccess(sessionId)
       const orderData = response.data.data.order
+      // Remove the bearer payment reference before any optional third-party script loads.
+      try {
+        if (location.hash.includes('session_id=') && sessionStorage.getItem('dn3-payment-return') === sessionId) history.replaceState(null, '', location.pathname + '#/success')
+      } catch { /* Retain the reference when browser storage is unavailable; Pixel stays off. */ }
       // Normalise: page renders order.tickets, backend returns order.items
       setOrder({ ...orderData, tickets: orderData.items || [] })
       return orderData
@@ -97,6 +106,7 @@ export default function PaymentSuccess() {
 
   return (
     <>
+    <AdvertisingConsent pixelId={order?.facebookPixel} purchase={order} />
     <SiteHeader eventName={order?.event?.name} />
     <div className="min-h-[calc(100vh-5rem)] bg-gray-50 py-8 px-4 sm:py-12">
       <div className="max-w-2xl mx-auto">

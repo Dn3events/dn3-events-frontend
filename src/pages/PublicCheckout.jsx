@@ -4,6 +4,7 @@ import { Loader, AlertCircle } from 'lucide-react'
 import { checkouts } from '../api/checkouts'
 import { payments } from '../api/payments'
 import { format, parseISO } from 'date-fns'
+import AdvertisingConsent from '../components/AdvertisingConsent'
 import SiteHeader from '../components/SiteHeader'
 import { cleanNumberInput } from '../lib/numberInput'
 
@@ -169,6 +170,7 @@ export default function PublicCheckout() {
 
   return (
     <>
+    <AdvertisingConsent pixelId={checkout?.settings?.facebookPixel} />
     <SiteHeader eventName={checkout.event?.name} />
     <div className="min-h-[calc(100vh-5rem)] bg-gray-50 py-8 px-4 sm:py-12">
       <div className="max-w-2xl mx-auto">
