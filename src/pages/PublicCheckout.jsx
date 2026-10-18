@@ -5,6 +5,7 @@ import { checkouts } from '../api/checkouts'
 import { payments } from '../api/payments'
 import { format, parseISO } from 'date-fns'
 import AdvertisingConsent from '../components/AdvertisingConsent'
+import CheckoutHero from '../components/CheckoutHero'
 import SiteHeader from '../components/SiteHeader'
 import { cleanNumberInput } from '../lib/numberInput'
 
@@ -166,16 +167,19 @@ export default function PublicCheckout() {
 
   const totalQuantity = Object.values(quantities).reduce((sum, q) => sum + (Number(q) || 0), 0)
   const money = (n) => `£${Number(n).toFixed(2)}`
+  const isRtr = /raise the roof/i.test(checkout.event?.name || '')
   const canBuy = checkout.salesOpen !== false
 
   return (
-    <>
+    <div className={isRtr ? 'rtr-checkout' : ''}>
     <AdvertisingConsent pixelId={checkout?.settings?.facebookPixel} />
     <SiteHeader eventName={checkout.event?.name} />
-    <div className="min-h-[calc(100vh-5rem)] bg-gray-50 py-8 px-4 sm:py-12">
+    {isRtr && <CheckoutHero />}
+    <div id="booking-form" className="min-h-[calc(100vh-5rem)] bg-gray-50 py-8 px-4 sm:py-12">
       <div className="max-w-2xl mx-auto">
+        {isRtr && <div className="rtr-booking-heading"><p className="rtr-checkout-eyebrow">Make it a weekend to remember</p><h2>Your tickets</h2><p>Choose your tickets below. Your total is shown before payment.</p></div>}
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className={isRtr ? "sr-only" : "text-center mb-8"}>
           <h1 className="text-3xl font-bold text-gray-900">{checkout.event?.name}</h1>
           {checkout.event?.startDate && (
             <p className="text-gray-600 mt-2">
@@ -394,6 +398,6 @@ export default function PublicCheckout() {
         </div>
       </div>
     </div>
-    </>
+    </div>
   )
 }
