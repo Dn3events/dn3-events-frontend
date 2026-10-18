@@ -233,6 +233,20 @@ export default function SalesTab({ eventId }) {
               </p>
             </div>
 
+            {!!selected.questionAnswers?.length && (
+              <section className="border-t border-gray-200 pt-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Booking answers</h4>
+                <dl className="space-y-3 text-sm">
+                  {selected.questionAnswers.map((a) => (
+                    <div key={a.id} className="break-words">
+                      <dt className="font-semibold text-gray-900">{a.questionText || a.question?.question || 'Booking question'}</dt>
+                      <dd className="mt-1 whitespace-pre-wrap text-gray-700">{a.answer}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            )}
+
             <div className="border-t border-gray-200 pt-4">
               <h4 className="font-semibold text-gray-900 mb-3">Tickets</h4>
               <div className="space-y-2">

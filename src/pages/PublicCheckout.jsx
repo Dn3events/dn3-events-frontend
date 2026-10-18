@@ -20,6 +20,7 @@ export default function PublicCheckout() {
   const [buyerEmail, setBuyerEmail] = useState('')
   const [buyerPostcode, setBuyerPostcode] = useState('')
   const [marketingConsent, setMarketingConsent] = useState(false)
+  const [questionAnswers, setQuestionAnswers] = useState({})
   const [discountCode, setDiscountCode] = useState('')
   const [appliedCode, setAppliedCode] = useState(null)
   const [discountError, setDiscountError] = useState('')
@@ -29,6 +30,7 @@ export default function PublicCheckout() {
   const apiError = (err, fallback) => err.response?.data?.error || err.response?.data?.message || fallback
 
   useEffect(() => {
+    setQuestionAnswers({})
     loadCheckout()
   }, [slug])
 
@@ -115,6 +117,7 @@ export default function PublicCheckout() {
         buyerEmail,
         buyerPostcode,
         marketingConsent,
+        questionAnswers: (checkout.questions || []).map((q) => ({ questionId: q.id, answer: questionAnswers[q.id] || '' })),
         discountCode: appliedCode,
       })
 
@@ -261,6 +264,32 @@ export default function PublicCheckout() {
                   />
                 </div>
               </div>
+
+              {!!checkout.questions?.length && (
+                <section className="bg-white rounded-lg shadow p-4 sm:p-6 space-y-5" aria-labelledby="booking-questions-title">
+                  <h2 id="booking-questions-title" className="text-xl font-semibold text-gray-900">Booking questions</h2>
+                  <p className="text-sm text-gray-600">Please answer once for this order. Required questions are marked.</p>
+                  {checkout.questions.map((q) => (
+                    <div key={q.id}>
+                      <label htmlFor={`question-${q.id}`} className="block text-sm font-semibold text-gray-900 mb-2 break-words">
+                        {q.question} <span className="font-normal text-gray-600">({q.required ? 'required' : 'optional'})</span>
+                      </label>
+                      {q.type === 'dropdown' ? (
+                        <select id={`question-${q.id}`} required={q.required} value={questionAnswers[q.id] || ''}
+                          onChange={(e) => setQuestionAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                          <option value="">Choose an option</option>
+                          {q.options.map((option) => <option key={option} value={option}>{option}</option>)}
+                        </select>
+                      ) : (
+                        <input id={`question-${q.id}`} type="text" required={q.required} maxLength={2000}
+                          value={questionAnswers[q.id] || ''} onChange={(e) => setQuestionAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
+                      )}
+                    </div>
+                  ))}
+                </section>
+              )}
 
               {/* Discount Code */}
               <div className="bg-white rounded-lg shadow p-4 sm:p-6">
