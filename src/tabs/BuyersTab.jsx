@@ -19,7 +19,7 @@ export default function BuyersTab({ eventId }) {
     try {
       const [o, q] = await Promise.all([ordersAPI.listByEvent(eventId), questionsAPI.listByEvent(eventId)])
       setOrders(o.data.data)
-      setEventQuestions(q.data.data)
+      setEventQuestions(q.data.data.filter((question) => question.enabled))
     } catch (err) {
       showToast(errorOf(err, 'Failed to load buyers'), 'error')
     }
@@ -110,7 +110,7 @@ export default function BuyersTab({ eventId }) {
       setFormData({
         question: question.question,
         type: question.type,
-        options: question.options.join('\n'),
+        options: (question.options || []).join('\n'),
         required: question.required,
       })
     } else {
@@ -142,10 +142,15 @@ export default function BuyersTab({ eventId }) {
     const questionData = {
       question: formData.question,
       type: formData.type,
-      options: formData.type === 'dropdown' ? formData.options.split('\n').filter((o) => o.trim()) : [],
+      options: formData.type === 'dropdown' ? formData.options.split('\n').map((o) => o.trim()).filter(Boolean) : [],
       required: formData.required,
-      sortOrder: eventQuestions.length + 1,
+      sortOrder: editingId ? eventQuestions.find((q) => q.id === editingId)?.sortOrder ?? 0 : Math.max(0, ...eventQuestions.map((q) => q.sortOrder)) + 1,
       perTransaction: true,
+    }
+
+    if (questionData.type === 'dropdown' && !questionData.options.length) {
+      showToast('Add at least one dropdown option', 'error')
+      return
     }
 
     try {
@@ -276,7 +281,7 @@ export default function BuyersTab({ eventId }) {
       {activeSubTab === 'questions' && (
         <div>
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Custom Buyer Questions</h3>
+            <div><h3 className="text-lg font-semibold text-gray-900">Custom Buyer Questions</h3><p className="text-sm text-gray-600 mt-1">Shown once per order at checkout. Removing a question keeps answers from earlier orders.</p></div>
             <button
               onClick={() => handleOpenModal()}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -347,6 +352,7 @@ export default function BuyersTab({ eventId }) {
                   type="text"
                   name="question"
                   value={formData.question}
+                  maxLength={300}
                   onChange={handleChange}
                   placeholder="e.g., Dietary requirements"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
