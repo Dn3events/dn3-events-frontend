@@ -7,6 +7,6 @@ export default function CheckoutHero() {
       <div className="rtr-checkout-partner"><span>In partnership with</span><img src="/checkout/tentbox-logo.png" alt="TentBox" /></div>
       <a href="#booking-form" onClick={e => {e.preventDefault(); document.getElementById('booking-form')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'})}} className="rtr-checkout-jump">Choose your tickets <span aria-hidden="true">↓</span></a>
     </div>
-    <figure className="rtr-checkout-photo"><img src="/checkout/tentbox-community.jpg" alt="Rooftop campers at a TentBox community camping event" /><figcaption>Photo: TentBox community event. Not the festival venue.</figcaption></figure>
+    <figure className="rtr-checkout-photo"><img src="/checkout/tentbox-rooftop-camping.jpg" alt="TentBox Lite XL rooftop tent on a car in a woodland camping setting" /><figcaption>Photo: TentBox Lite XL. Not the festival venue.</figcaption></figure>
   </section>
 }

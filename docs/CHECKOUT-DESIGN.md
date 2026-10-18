@@ -3,16 +3,16 @@
 Appearance-only branch, based on released flat-fee main. No API/pricing/order behavior changed. No deploy or merge without approval.
 
 - Larger current RTR/TentBox festival logo across buyer header and confirmation.
-- Warm-paper hero, deep green typography and orange ticket CTA; real community-camping image, date/location and partnership context.
+- Warm-paper hero, deep green typography and orange ticket CTA; real roof-tent product image, date/location and partnership context.
 - Existing ticket form, consent, required questions, quote, discount and payment mechanics untouched. Clear jump-to-form button; respects reduced motion.
 - RTR-only hero and page palette; other named events receive their own name in the shared header rather than festival imagery.
 - No placeholder promises or fabricated event photo. Venue/date/partnership copy comes from local RTR site materials and live checkout context. Current website fetch returned protected access, so local site assets/styles were inspected instead.
 
-Newly sourced photograph, not reused from existing RTR site:
-https://tentbox.com/blogs/travel-tips/a-wild-camping-adventure
-https://tentbox.com/cdn/shop/articles/2807_-_TentBox_Takeover_CoCos_Wild_Camp-163.jpg?v=1722869629
-Caption: Photo: TentBox community event. Not the festival venue.
-This is a TentBox-owned public article image. Partnership is established, but a separate image-licensing grant was not verified during this design task; confirm partner usage rights before publication if the partnership does not cover this image.
+Replacement photograph selected after John rejected the community-event photo and approved another photo from TentBox's own website:
+https://tentbox.com/products/tentbox-lite-xl
+https://tentbox.com/cdn/shop/files/TLIXL-2026-05-SUN-comp.jpg?v=1776353744&width=816
+Caption: Photo: TentBox Lite XL. Not the festival venue.
+Product lifestyle image from the Lite XL page, not a different festival/event image. Former community-event image removed. No claim that the scene is Scampston.
 
 Local current RTR logo source: rtr-site/assets/52019e94be557b50.webp. TentBox wordmark from existing backend branding asset. Both copied into checkout assets. No generated imagery.
 
