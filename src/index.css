@@ -30,3 +30,34 @@ body {
 .toast.warning {
   @apply bg-amber-500;
 }
+
+/* Raise the Roof public booking: warm paper, forest green and the festival's orange. */
+.rtr-checkout-nav{max-width:1240px;margin:auto;padding:12px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.rtr-checkout-logo{width:146px;height:100px;object-fit:contain}
+.rtr-checkout-nav-links{display:flex;gap:28px;align-items:center;color:#fff;font-size:14px;font-weight:600}
+.rtr-checkout-nav-links>span{border:1px solid #71756b;border-radius:4px;padding:9px 14px}
+.rtr-checkout{background:#f4f1e9;color:#18251b}
+.rtr-checkout-hero{max-width:1240px;margin:auto;display:grid;grid-template-columns:1fr 1fr;min-height:460px;padding:36px 40px 48px;gap:40px;align-items:center}
+.rtr-checkout-hero-copy{padding:8px 0}
+.rtr-checkout-eyebrow{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1.6;color:#56634f}
+.rtr-checkout-hero h1{font-size:clamp(42px,5vw,70px);font-weight:900;letter-spacing:-.055em;line-height:1.02;margin:24px 0}
+.rtr-checkout-hero h1 span{color:#36583e}
+.rtr-checkout-intro{font-size:18px;line-height:1.65;max-width:430px}
+.rtr-checkout-partner{display:flex;align-items:center;gap:14px;margin:26px 0;font-size:12px;font-weight:600}
+.rtr-checkout-partner img{width:110px;height:32px;object-fit:contain;mix-blend-mode:multiply}
+.rtr-checkout-jump{display:inline-flex;align-items:center;gap:26px;padding:13px 20px;background:#ff9500;border-radius:4px;font-weight:800;color:#101310;min-height:48px}
+.rtr-checkout-photo{position:relative;min-width:0}
+.rtr-checkout-photo>img{width:100%;height:400px;object-fit:cover;object-position:center;border-radius:6px}
+.rtr-checkout-photo figcaption{font-size:11px;color:#56634f;margin-top:8px;line-height:1.5}
+.rtr-checkout #booking-form{background:#e8ece2;border-top:1px solid #d7ddce;scroll-margin-top:16px}
+.rtr-checkout #booking-form>.max-w-2xl{max-width:1100px}
+.rtr-booking-heading{margin-bottom:30px}
+.rtr-booking-heading h2{font-size:32px;letter-spacing:-.035em;font-weight:900;margin:8px 0}
+.rtr-booking-heading>p:last-child{color:#52604d;line-height:1.6}
+.rtr-checkout #booking-form .bg-white{box-shadow:none;border:1px solid #d6ddce;border-radius:8px}
+.rtr-checkout #booking-form h2,.rtr-checkout #booking-form h3{color:#213a29}
+.rtr-checkout #booking-form input:focus,.rtr-checkout #booking-form select:focus{outline-color:#36583e}
+.rtr-checkout button:focus-visible,.rtr-checkout a:focus-visible{outline:3px solid #865000;outline-offset:4px}
+@media(min-width:1024px){.rtr-checkout #booking-form .md\:col-span-1{position:sticky;top:24px;align-self:start}}
+@media(max-width:640px){.rtr-checkout-nav{padding:10px 20px;gap:16px}.rtr-checkout-logo{width:110px;height:82px}.rtr-checkout-nav-links{flex-direction:column;align-items:flex-end;gap:10px;font-size:12px}.rtr-checkout-nav-links>span{padding:6px 9px}.rtr-checkout-hero{grid-template-columns:1fr;padding:28px 20px 30px;gap:26px}.rtr-checkout-hero h1{font-size:46px;margin:18px 0}.rtr-checkout-intro{font-size:16px}.rtr-checkout-partner{margin:20px 0}.rtr-checkout-photo>img{height:240px}.rtr-booking-heading h2{font-size:29px}}
+@media(prefers-reduced-motion:reduce){.rtr-checkout *{scroll-behavior:auto!important}}
