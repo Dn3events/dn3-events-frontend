@@ -55,6 +55,7 @@ export default function SettingsTab({ eventId }) {
   const handleSaveSettings = async () => {
     try {
       const body = {
+        feePerTicket: formData.feePerTicket === null || formData.feePerTicket === undefined || formData.feePerTicket === '' ? null : Number(formData.feePerTicket),
         feeFixed: Number(formData.feeFixed),
         feePercent: Number(formData.feePercent),
         feesPassedOn: !!formData.feesPassedOn,
@@ -167,7 +168,12 @@ export default function SettingsTab({ eventId }) {
       {activeSubTab === 'fees' && (
         <div className="space-y-6 max-w-2xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div className="border rounded-lg p-4 space-y-3">
+            <label htmlFor="feePerTicket" className="block font-semibold">Flat booking fee per paid ticket (£)</label>
+            <input id="feePerTicket" name="feePerTicket" type="number" min="0" max="100" step="0.01" value={formData.feePerTicket ?? ''} onChange={handleChange} placeholder="Leave blank for legacy order + percentage fees" className="w-full px-4 py-2 border rounded-lg" />
+            <p className="text-sm text-gray-600">When set, replaces both legacy fees below. Free tickets and fully discounted orders stay fee-free. Partly discounted paid tickets keep the full fee. Existing orders never change.</p>
+          </div>
+          <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">Fixed Fee (£)</label>
               <input
                 type="number"

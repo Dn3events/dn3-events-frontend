@@ -151,6 +151,7 @@ export default function PaymentSuccess() {
                   <span className="text-gray-600">Email</span>
                   <span className="font-semibold text-gray-900">{order.buyerEmail}</span>
                 </div>
+                {order.subtotal !== undefined && <><div className="flex justify-between"><span>Tickets</span><span>£{order.subtotal.toFixed(2)}</span></div>{order.discountAmount > 0 && <div className="flex justify-between"><span>Discount</span><span>-£{order.discountAmount.toFixed(2)}</span></div>}<div className="flex justify-between"><span>Booking fee</span><span>£{order.fees.toFixed(2)}</span></div></>}
                 <div className="border-t pt-3 flex justify-between text-base font-bold">
                   <span>{order.total === 0 ? 'Total (free)' : isPaid ? 'Total Paid' : 'Total'}</span>
                   <span>£{order.total.toFixed(2)}</span>

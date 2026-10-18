@@ -376,7 +376,7 @@ export default function PublicCheckout() {
                 <span className="font-semibold">{quote ? money(quote.subtotal) : '-'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Fees</span>
+                <span className="text-gray-600">Booking fee</span>
                 <span className="font-semibold">{quote ? money(quote.fees) : '-'}</span>
               </div>
               {quote && quote.discount > 0 && (
