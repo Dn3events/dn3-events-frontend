@@ -60,6 +60,7 @@ export default function SettingsTab({ eventId }) {
         feesPassedOn: !!formData.feesPassedOn,
         vatRegistered: !!formData.vatRegistered,
         facebookPixel: formData.facebookPixel || '',
+        brevoListId: formData.brevoListId ? Number(formData.brevoListId) : null,
         termsAndConditions: formData.termsAndConditions || '',
         preCheckoutMessage: formData.preCheckoutMessage || '',
         postCheckoutMessage: formData.postCheckoutMessage || '',
@@ -231,6 +232,11 @@ export default function SettingsTab({ eventId }) {
             />
           </div>
 
+          <div>
+            <label htmlFor="brevoListId" className="block text-sm font-semibold text-gray-900 mb-2">Brevo marketing list ID</label>
+            <input id="brevoListId" name="brevoListId" type="number" min="1" step="1" value={formData.brevoListId ?? ''} onChange={handleChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+            <p className="text-sm text-gray-600 mt-2">Optional. Only completed orders with email opt-in are synced. The server connection must also be enabled. Existing unsubscribes are respected. No campaigns are sent here.</p>
+          </div>
           <button
             onClick={handleSaveSettings}
             className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"

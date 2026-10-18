@@ -72,7 +72,8 @@ export default function PrivacyNotice() {
           <P>We do not sell your information. We use a small number of companies to run the service for us:</P>
           <L items={[
             'Stripe, to take payments and process refunds.',
-            'Brevo, to send ticket and confirmation emails.',
+            'Brevo, to send ticket and confirmation emails, and to store your email on the organiser marketing list only if you opted in.',
+            'Meta (Facebook), only if you allow optional advertising cookies. Meta receives page visits, purchase totals, currency and technical identifiers such as IP address and browser information for advertising measurement. We do not send your name, email, postcode or booking answers to the Pixel.',
             'DN3 Events, which provides the ticketing system, and Railway, which hosts it and its database.',
             'Event staff at the door, who can see your name and ticket when they scan it.',
           ]} />
@@ -81,6 +82,8 @@ export default function PrivacyNotice() {
             Data Transfer Agreement or an adequacy decision.
           </P>
 
+          <H>Optional advertising cookies</H>
+          <P>Where an organiser uses the Meta Pixel, it stays off until you allow advertising cookies. You can reject them and still book. This choice is separate from email marketing. Use the advertising cookie control on checkout or your confirmation page to change your choice or withdraw consent. We remember the choice on this browser for up to six months. Meta also sets its own advertising cookies. Withdrawal stops future tracking; it cannot undo information already sent to Meta.</P>
           <H>How long we keep it</H>
           <P>
             We keep your order details for {RETENTION_MONTHS / 12} years after the event, for accounts, refunds and
