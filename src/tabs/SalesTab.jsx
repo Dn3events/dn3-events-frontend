@@ -248,6 +248,7 @@ export default function SalesTab({ eventId }) {
             )}
 
             <div className="border-t border-gray-200 pt-4">
+              {selected.changes?.length>0&&<div className="rounded-lg bg-indigo-50 p-4 mb-4 text-sm"><h4 className="font-semibold mb-2">Separate ticket changes</h4><p className="text-xs mb-2">Original receipt stays unchanged. Change payments are separate, not included in original-sale totals.</p>{selected.changes.map(c=><div key={c.id} className="py-2 border-t"><p>{c.sourceTicketName} to {c.targetTicketName}</p><p>{c.status} - {money(c.duePence/100)} separate</p></div>)}</div>}
               <h4 className="font-semibold text-gray-900 mb-3">Tickets</h4>
               <div className="space-y-2">
                 {(selected.tickets || []).map((t, idx) => (

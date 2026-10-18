@@ -1,0 +1,11 @@
+# Ticket upgrades / exchanges (branch review)
+
+Paired with the backend feature/ticket-upgrades-exchanges branch. Backend migration 20261018004000_ticket_changes and server routes are required BEFORE any frontend deployment, after separate approval. Nothing is enabled by this frontend. Backend guards require test mode, a test source order and explicit policy/feature switches. No live-mode checkout support.
+
+Buyer success screen adds a read-only preview with original unit-price credit (booking fee excluded), replacement price and no second booking fee. Pending history does not claim a replacement. Server confirmation shows the current valid admission list separately from the original receipt. Same order group QR still resolves to current admissions; old individual QR is rotated on replacement. One scan admits one person, not the whole group. No emails or marketing are triggered by this panel.
+
+John confirmed no downgrade and no second upgrade fee at 20:20. Confirm the exact credit wording before operational use: original stored ticket unit price, excluding its booking fee; discounted orders require organiser review and cannot auto-upgrade. No cross-event, guest/trader, used, refunded or erased admissions. One admission per change. Buyer needs the existing order success reference; no new login/order lookup email or account recovery is added.
+
+Organiser Sales detail shows separate changes and amounts, not folded into original receipt or sale-summary revenue. Backend CSV appends change history and separate completed amounts; a separate ticket-change report endpoint exposes completed/review payments. Multi-payment refunds require manual reconciliation; existing refund API stops on changed orders.
+
+`npm run build` passes. For browser proof install playwright-core locally with no save, have Chrome available at /usr/bin/google-chrome, then run `node scripts/test-ticket-changes-ui.mjs`. Browser routes intercept every API and third-party request; no live orders, providers or messages. Fixtures verify payment OFF, no mutation from preview, £25->£75 with £50 due/no second fee, pending versus confirmed history and 1280/390/320px layouts. Screenshot names are under /downloads. They are test prices, not live offerings.

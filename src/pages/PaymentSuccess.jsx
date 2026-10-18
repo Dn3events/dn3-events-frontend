@@ -4,6 +4,7 @@ import { Loader, AlertCircle, CheckCircle } from 'lucide-react'
 import QRCode from 'qrcode'
 import { payments } from '../api/payments'
 import AdvertisingConsent from '../components/AdvertisingConsent'
+import TicketChanges from '../components/TicketChanges'
 import SiteHeader from '../components/SiteHeader'
 
 export default function PaymentSuccess() {
@@ -185,12 +186,13 @@ export default function PaymentSuccess() {
             <div className="mb-8 border-t pt-8 text-center">
               <h3 className="text-lg font-semibold text-gray-900 mb-1">Your entry QR code</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Show this at the door. One scan admits everyone on this order. Take a screenshot to keep it handy.
+                Show this at the door. Each scan admits one person from this order. Take a screenshot to keep it handy.
               </p>
               <img src={qrImage} alt="Entry QR code for your order" className="mx-auto w-64 h-64 border rounded-lg" />
             </div>
           )}
 
+          {isPaid && order?.currentAdmissions?.length>0 && <div className="mb-8 border-t pt-8"><h3 className="font-semibold mb-3">Current entry admissions</h3><p className="text-xs text-gray-500 mb-3">The receipt above records your original purchase. This list shows the ticket types currently valid for entry.</p>{order.currentAdmissions.map(t=><p key={t.id} className="text-sm py-1">{t.name}{t.scanned?' (already checked in)':''}</p>)}</div>}
           {/* Message */}
           {isPaid && order?.emailStatus === 'sent' && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
@@ -211,6 +213,7 @@ export default function PaymentSuccess() {
             </div>
           )}
         </div>
+        {isPaid && <TicketChanges reference={sessionId} onChanged={loadOrder}/>}
 
       </div>
     </div>
