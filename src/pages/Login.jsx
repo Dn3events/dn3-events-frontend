@@ -23,7 +23,7 @@ export default function Login() {
       setAuth(user, token)
       navigate('/', { replace: true })
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.')
+      setError(err.response?.data?.error || err.response?.data?.message || 'Login failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -95,6 +95,12 @@ export default function Login() {
               {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
+
+          <p className="text-center text-sm mt-4">
+            <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-700 font-semibold">
+              Forgot password?
+            </Link>
+          </p>
 
           {/* Register Link */}
           <p className="text-center text-sm text-gray-600 mt-6">

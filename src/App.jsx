@@ -6,6 +6,8 @@ import EventDetail from './pages/EventDetail'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import PublicCheckout from './pages/PublicCheckout'
 import PaymentSuccess from './pages/PaymentSuccess'
 import PrivacyNotice from './pages/PrivacyNotice'
@@ -18,6 +20,8 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/checkout/:slug" element={<PublicCheckout />} />
         <Route path="/privacy/:slug?" element={<PrivacyNotice />} />
         <Route path="/success" element={<PaymentSuccess />} />
