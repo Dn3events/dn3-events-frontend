@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      // The shop now lives at tickets.dn3events.co.uk. Anyone arriving on the old Railway address
+      // is sent to the same page there (path, query and #/checkout/... all kept).
+      if (location.hostname === 'frontend-production-f1587.up.railway.app') {
+        location.replace('https://tickets.dn3events.co.uk' + location.pathname + location.search + location.hash)
+      }
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
