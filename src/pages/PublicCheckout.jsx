@@ -365,7 +365,7 @@ export default function PublicCheckout() {
                 className="w-full bg-[#ff9500] hover:bg-[#e68600] disabled:bg-gray-400 text-[#101310] font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"
               >
                 {processing && <Loader className="w-5 h-5 animate-spin" />}
-                {processing ? 'Processing...' : quote ? (quote.total === 0 ? 'Get tickets (free)' : `Buy tickets - ${money(quote.total)}`) : totalQuantity > 0 ? 'Buy tickets' : 'Choose tickets'}
+                {processing ? 'Processing...' : quote ? (quote.total === 0 ? 'Get tickets (free)' : `Buy tickets - ${money(quote.total)}`) : 'Buy tickets'}
               </button>
               {quoteError && <p className="text-red-600 text-sm">{quoteError}</p>}
             </form>
